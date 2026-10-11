@@ -5,6 +5,8 @@ import { getCuratedById } from '../data/curatedWorkouts';
 import { WorkoutEngine } from '../features/workouts/workoutEngine';
 import { PlayerSnapshot, CompletedWorkout } from '../types/workout';
 import { addToHistory } from '../utils/storage';
+import { resolveDemo } from '../data/exerciseVideos';
+import { ExerciseDemoPanel } from '../components/ExerciseDemoPanel';
 
 function resolvePlan(id: string | undefined) {
   if (!id) return null;
@@ -50,7 +52,9 @@ export function PlayerScreen() {
       <div className="session-shell">
         <div className="empty-state">
           <h2>Workout not found</h2>
-          <button type="button" className="button primary" onClick={() => navigate('/')}>Home</button>
+          <button type="button" className="button primary" onClick={() => navigate('/')}>
+            Home
+          </button>
         </div>
       </div>
     );
@@ -75,13 +79,16 @@ export function PlayerScreen() {
   const mm = String(Math.floor(snapshot.secondsRemaining / 60)).padStart(1, '0');
   const ss = String(snapshot.secondsRemaining % 60).padStart(2, '0');
 
+  const demo = resolveDemo(isResting ? next?.name : current?.name);
+
   return (
-    <div className="session-shell">
+    <div className="session-shell session-with-demo">
       <div className="session-top">
         <div>
           <p className="overline">{plan.title}</p>
           <span className="session-count">
-            {snapshot.completedExerciseIds.length + 1} / {plan.exercises.length}
+            {Math.min(snapshot.completedExerciseIds.length + 1, plan.exercises.length)} /{' '}
+            {plan.exercises.length}
           </span>
         </div>
         <button type="button" className="button ghost" onClick={() => engineRef.current?.stop()}>
@@ -93,23 +100,32 @@ export function PlayerScreen() {
         <div style={{ width: `${progressPct}%` }} />
       </div>
 
-      <div className="session-stage">
-        {isResting ? (
-          <>
-            <p className="overline">Rest</p>
-            <h1>Breathe</h1>
-            <p className="session-cue">Next up: {next?.name ?? 'Finish'}</p>
-          </>
-        ) : (
-          <>
-            <p className="overline">Now</p>
-            <h1>{current?.name ?? 'Done'}</h1>
-            <p className="session-cue">{current?.instructions}</p>
-          </>
-        )}
+      <div className="session-layout">
+        <ExerciseDemoPanel demo={demo} isResting={isResting} />
 
-        <div className="session-timer">{mm}:{ss}</div>
-        {isPaused && <p className="session-paused">PAUSED</p>}
+        <div className="session-stage">
+          {isResting ? (
+            <>
+              <p className="overline">Rest</p>
+              <h1>Breathe</h1>
+              <p className="session-cue">Next up: {next?.name ?? 'Finish'}</p>
+            </>
+          ) : (
+            <>
+              <p className="overline">Now</p>
+              <h1>{current?.name ?? 'Done'}</h1>
+              <p className="session-cue">{current?.instructions}</p>
+            </>
+          )}
+
+          <div className="session-timer">
+            {mm}:{ss}
+          </div>
+          {isPaused && <p className="session-paused">PAUSED</p>}
+          <p className="session-safety">
+            Move within comfortable limits. Stop if you feel pain, dizziness, or unwell.
+          </p>
+        </div>
       </div>
 
       <div className="session-controls">

@@ -378,3 +378,138 @@ button:focus-visible {
   outline: 3px solid var(--lime);
   outline-offset: 3px;
 }
+
+/* —— Exercise demo panel (player) —— */
+.session-with-demo {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.session-layout {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 28px;
+  align-items: stretch;
+  flex: 1;
+  min-height: 0;
+}
+.demo-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 280px;
+}
+.demo-media {
+  position: relative;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #0a151c;
+  overflow: hidden;
+  aspect-ratio: 16 / 10;
+  min-height: 220px;
+}
+.demo-iframe,
+.demo-video {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: block;
+  background: #000;
+}
+.demo-placeholder {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 24px;
+  text-align: center;
+  color: var(--muted);
+}
+.demo-placeholder-title {
+  margin: 0;
+  color: var(--ink);
+  font-size: 18px;
+  font-weight: 700;
+}
+.demo-placeholder-sub {
+  margin: 0;
+  font-size: 13px;
+  max-width: 320px;
+}
+.demo-cues {
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+  text-align: left;
+  width: min(100%, 320px);
+}
+.demo-cues li {
+  position: relative;
+  padding: 6px 0 6px 16px;
+  font-size: 14px;
+  color: var(--ink);
+}
+.demo-cues li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 12px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--lime);
+}
+.demo-copy {
+  padding: 0 4px;
+}
+.demo-description {
+  margin: 0 0 6px;
+  font-size: 14px;
+  color: var(--ink);
+}
+.demo-fallback {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.45;
+}
+.demo-attr {
+  margin: 8px 0 0;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--muted-2);
+  letter-spacing: 0.04em;
+}
+.demo-status {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(7, 17, 20, 0.85);
+  z-index: 2;
+  color: var(--muted);
+  font-size: 14px;
+  padding: 20px;
+  text-align: center;
+}
+.demo-error {
+  gap: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.session-safety {
+  margin-top: 12px;
+  font-size: 12px;
+  color: var(--muted-2);
+  max-width: 360px;
+}
+.session-stage h1 {
+  font-size: clamp(28px, 4vw, 42px);
+}
+@media (max-width: 900px) {
+  .session-layout {
+    grid-template-columns: 1fr;
+  }
+}
