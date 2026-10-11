@@ -1,6 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowUpRight, Clock3, Flame, Sparkles, Target, Trophy } from 'lucide-react';
+import {
+  ArrowRight,
+  ArrowUpRight,
+  Check,
+  Clock3,
+  Dumbbell,
+  Flame,
+  Leaf,
+  Play,
+  Sparkles,
+  Trophy,
+  WandSparkles,
+} from 'lucide-react';
 import { getAllCurated } from '../data/curatedWorkouts';
 import { loadHistory } from '../utils/storage';
 import { totalMinutes, calculateStreak } from '../features/workouts/workoutEngine';
@@ -17,93 +29,163 @@ export function HomeScreen() {
   const [rec, setRec] = useState<string | null>(null);
 
   useEffect(() => {
-    api.getRecommendation().then((r) => setRec(r.message)).catch(() => setRec(null));
+    api
+      .getRecommendation()
+      .then((r) => setRec(r.message))
+      .catch(() => setRec(null));
   }, []);
 
+  const firstCurated = curated[0];
+
   return (
-    <div className="page-pad">
-      <header className="page-header">
-        <div>
-          <p className="overline">Tonight on FitTV</p>
-          <h1>Train in the living room</h1>
-          <p className="lede">
-            Structured plans, remote-friendly coaching, and quick adaptations when time or energy shifts.
-          </p>
-        </div>
-        <button type="button" className="button primary" onClick={() => navigate('/personalize')}>
-          <Sparkles size={16} />
-          Personalize workout
-        </button>
-      </header>
-
-      {rec && (
-        <div className="coach-callout" style={{ marginBottom: 28 }}>
-          <Sparkles size={18} />
-          <div>
-            <strong>Coach tip</strong>
-            <p>{rec}</p>
+    <div className="page-section">
+      {/* INTRO / HERO — from design */}
+      <section className="hero-panel">
+        <div className="hero-copy">
+          <div className="section-kicker">
+            <span className="live-dot" /> Adaptive coach · Living room
+          </div>
+          <h1>
+            Make space for
+            <br />
+            <em>your better.</em>
+          </h1>
+          <p>One focused session, shaped around how you feel today.</p>
+          <div className="hero-actions">
+            <button type="button" className="button primary" onClick={() => navigate('/personalize')}>
+              <Sparkles size={18} /> Start adaptive session <ArrowRight size={18} />
+            </button>
+            {firstCurated && (
+              <button
+                type="button"
+                className="button quiet"
+                onClick={() => navigate(`/preview/${firstCurated.id}`)}
+              >
+                <Play size={17} /> Quick start
+              </button>
+            )}
+          </div>
+          <div className="hero-note">
+            <span>
+              <Check size={14} /> No equipment
+            </span>
+            <span>
+              <Clock3 size={14} /> 12–20 min
+            </span>
+            <span>
+              <Leaf size={14} /> Low impact
+            </span>
           </div>
         </div>
-      )}
-
-      <div className="stats-grid">
-        <div className="stat-card lime">
-          <p className="overline">Sessions</p>
-          <strong style={{ fontSize: 36 }}>{history.length}</strong>
-          <span>Completed</span>
-        </div>
-        <div className="stat-card coral">
-          <p className="overline">Minutes</p>
-          <strong style={{ fontSize: 36 }}>{mins}</strong>
-          <span>Active time</span>
-        </div>
-        <div className="stat-card violet">
-          <p className="overline">Streak</p>
-          <strong style={{ fontSize: 36 }}>{streak}</strong>
-          <span>Days</span>
-        </div>
-        <div className="insight-card">
-          <div className="chart-header">
-            <Trophy size={16} />
-            <span>Keep the rhythm</span>
+        <div className="hero-orbit" aria-hidden="true">
+          <div className="orbit-ring ring-one" />
+          <div className="orbit-ring ring-two" />
+          <div className="orbit-ring ring-three" />
+          <div className="orbit-core">
+            <Dumbbell size={34} />
           </div>
-          <p style={{ margin: '12px 0 0', color: 'var(--muted)' }}>
-            Start a short curated session or generate a plan that matches your energy tonight.
-          </p>
+          <span className="orbit-tag tag-top">TODAY&apos;S FOCUS</span>
+          <span className="orbit-tag tag-bottom">MOVE BETTER</span>
         </div>
-      </div>
+      </section>
 
+      {/* Stats */}
       <div className="section-heading">
         <div>
-          <p className="overline">Ready to start</p>
-          <h2>Curated for the couch</h2>
+          <p className="overline">Your rhythm</p>
+          <h2>Small wins, visible.</h2>
         </div>
-        <button type="button" className="text-button" onClick={() => navigate('/personalize')}>
-          Generate new <ArrowUpRight size={14} />
+        <button type="button" className="text-button" onClick={() => navigate('/progress')}>
+          See progress <ArrowRight size={15} />
         </button>
       </div>
 
-      <div className="explore-grid">
+      <section className="stats-grid">
+        <div className="stat-card lime">
+          <div className="stat-top">
+            <span className="stat-icon">
+              <Flame size={18} />
+            </span>
+            <span className="stat-label">Current streak</span>
+          </div>
+          <strong>{streak} days</strong>
+          <span className="stat-detail">Keep showing up</span>
+        </div>
+        <div className="stat-card coral">
+          <div className="stat-top">
+            <span className="stat-icon">
+              <Clock3 size={18} />
+            </span>
+            <span className="stat-label">Active minutes</span>
+          </div>
+          <strong>{mins}</strong>
+          <span className="stat-detail">Total logged</span>
+        </div>
+        <div className="stat-card violet">
+          <div className="stat-top">
+            <span className="stat-icon">
+              <Trophy size={18} />
+            </span>
+            <span className="stat-label">Sessions done</span>
+          </div>
+          <strong>{history.length}</strong>
+          <span className="stat-detail">In this device</span>
+        </div>
+        <div className="insight-card">
+          <div className="insight-label">
+            <WandSparkles size={16} /> Coach insight
+          </div>
+          <p>
+            {rec ||
+              'Start with a short low-impact session. Rate how it felt so the coach can adapt.'}
+          </p>
+          <div className="insight-footer">
+            <span>Based on your feedback</span>
+            <ArrowUpRight size={15} />
+          </div>
+        </div>
+      </section>
+
+      {/* Curated workouts */}
+      <div className="section-heading workout-heading">
+        <div>
+          <p className="overline">Curated for your week</p>
+          <h2>Find your next move.</h2>
+        </div>
+        <button type="button" className="text-button" onClick={() => navigate('/personalize')}>
+          Generate plan <ArrowRight size={15} />
+        </button>
+      </div>
+
+      <section className="workout-rail">
         {curated.map((w, i) => (
           <button
             key={w.id}
             type="button"
-            className={`explore-card ${accents[i % accents.length]}`}
+            className="workout-card"
             onClick={() => navigate(`/preview/${w.id}`)}
           >
-            <div className="explore-card-body">
-              <p className="card-eyebrow">{w.goal}</p>
+            <div className={`workout-visual ${accents[i % accents.length]}`} aria-hidden>
+              <div className="sun-orb" />
+              <div className="figure-head" />
+              <div className="figure-body" />
+              <span className="visual-label">FITTV / 0{i + 1}</span>
+            </div>
+            <div className="workout-content">
+              <span className="card-eyebrow">{w.goal}</span>
               <h3>{w.title}</h3>
-              <p>{w.coachNotes || w.goal}</p>
-              <div className="meta-row">
-                <span><Clock3 size={13} /> {w.estimatedDurationMinutes} min</span>
-                <span><Target size={13} /> {w.level}</span>
-                <span><Flame size={13} /> {w.impact}</span>
+              <p>
+                {w.level} · {w.impact} impact
+              </p>
+              <div className="workout-meta">
+                <span>{w.estimatedDurationMinutes} min</span>
+                <span>{w.level}</span>
+                <ArrowUpRight size={16} />
               </div>
             </div>
           </button>
         ))}
-      </div>
+      </section>
     </div>
   );
 }

@@ -3,7 +3,6 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { App } from './App';
 import './styles/design.css';
-import './styles/auth.css';
 import './styles/app-bridge.css';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
