@@ -112,9 +112,13 @@ app.get('/api/history', (req, res) => {
   res.json({ history: getHistory(limit) });
 });
 
-// Phase 8 – Recommendation from feedback memory
+// Recommendation from guest history (client localStorage is source of truth)
+app.post('/api/coach/recommend', (req, res) => {
+  const history = Array.isArray(req.body?.history) ? req.body.history : [];
+  res.json(getRecommendation(history));
+});
 app.get('/api/coach/recommend', (req, res) => {
-  res.json(getRecommendation());
+  res.json(getRecommendation([]));
 });
 
 // Errors

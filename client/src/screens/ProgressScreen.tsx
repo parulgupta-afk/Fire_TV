@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Trophy } from 'lucide-react';
-import { loadHistory } from '../utils/storage';
+import { loadHistory, resetAllLocalProgress } from '../utils/storage';
 import { totalMinutes, calculateStreak } from '../features/workouts/workoutEngine';
 
 export function ProgressScreen() {
@@ -82,6 +82,25 @@ export function ProgressScreen() {
           ))}
         </div>
       )}
+
+      <div style={{ marginTop: 40, paddingTop: 24, borderTop: '1px solid var(--line)' }}>
+        <p className="lede" style={{ fontSize: 13 }}>
+          Progress is stored on this device only. It is not synced across TVs or browsers.
+        </p>
+        <button
+          type="button"
+          className="button ghost"
+          onClick={() => {
+            if (window.confirm('Reset all local progress on this device? This cannot be undone.')) {
+              resetAllLocalProgress();
+              window.location.reload();
+            }
+          }}
+        >
+          Reset local progress
+        </button>
+      </div>
     </div>
   );
 }
+

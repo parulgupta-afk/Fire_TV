@@ -30,7 +30,7 @@ export function HomeScreen() {
 
   useEffect(() => {
     api
-      .getRecommendation()
+      .getRecommendation(history)
       .then((r) => setRec(r.message))
       .catch(() => setRec(null));
   }, []);
@@ -88,6 +88,29 @@ export function HomeScreen() {
           <span className="orbit-tag tag-bottom">MOVE BETTER</span>
         </div>
       </section>
+
+
+      {/* Quick starts */}
+      <div className="section-heading" style={{ marginTop: 8 }}>
+        <div>
+          <p className="overline">Quick start</p>
+          <h2>Jump in without setup.</h2>
+        </div>
+      </div>
+      <div className="choice-row" style={{ marginBottom: 28 }}>
+        <button type="button" className="button secondary" onClick={() => navigate('/preview/curated-quick-cardio')}>
+          12-min low-impact cardio
+        </button>
+        <button type="button" className="button secondary" onClick={() => navigate('/preview/curated-beginner-bodyweight')}>
+          15-min beginner full body
+        </button>
+        <button type="button" className="button secondary" onClick={() => navigate('/preview/curated-core-focus')}>
+          14-min gentle core
+        </button>
+        <button type="button" className="button primary" onClick={() => navigate('/personalize')}>
+          Personalize
+        </button>
+      </div>
 
       {/* Stats */}
       <div className="section-heading">

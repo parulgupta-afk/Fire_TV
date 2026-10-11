@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Check } from 'lucide-react';
 import { CompletedWorkout, DifficultyRating } from '../types/workout';
-import { loadHistory, saveHistory } from '../utils/storage';
+import { updateHistoryRating } from '../utils/storage';
 
 export function FeedbackScreen() {
   const navigate = useNavigate();
@@ -12,13 +12,8 @@ export function FeedbackScreen() {
 
   const saveRating = (rating: DifficultyRating) => {
     setSelected(rating);
-    if (record) {
-      const history = loadHistory();
-      const idx = history.findIndex((h) => h.id === record.id);
-      if (idx >= 0) {
-        history[idx] = { ...history[idx], difficultyRating: rating };
-        saveHistory(history);
-      }
+    if (record?.id) {
+      updateHistoryRating(record.id, rating);
     }
   };
 
@@ -33,13 +28,18 @@ export function FeedbackScreen() {
           <strong>{Math.round(record.actualDurationSeconds / 60)}</strong> minutes.
         </p>
       )}
+      <p className="lede" style={{ fontSize: 14 }}>
+        Your rating stays on this device and shapes the next coach tip.
+      </p>
 
       <div className="choice-row" style={{ justifyContent: 'center', marginTop: 32 }}>
-        {([
-          ['too_easy', 'Too easy'],
-          ['just_right', 'Just right'],
-          ['too_hard', 'Too hard'],
-        ] as const).map(([value, label]) => (
+        {(
+          [
+            ['too_easy', 'Too easy'],
+            ['just_right', 'Just right'],
+            ['too_hard', 'Too hard'],
+          ] as const
+        ).map(([value, label]) => (
           <button
             key={value}
             type="button"

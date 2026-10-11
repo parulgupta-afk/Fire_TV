@@ -55,6 +55,7 @@ export const api = {
     durationMinutes?: number;
     impact?: string;
     equipment?: string[];
+    recentFeedback?: string[];
   }) =>
     request<{ workout: any; source?: string; warning?: string }>('/api/workouts/generate', {
       method: 'POST',
@@ -63,7 +64,7 @@ export const api = {
 
   adaptWorkout: (payload: {
     plan: any;
-    options: { shorter?: boolean; easier?: boolean; noJumping?: boolean };
+    options: { shorter?: boolean; easier?: boolean; noJumping?: boolean; replaceExerciseId?: string; replaceWith?: string };
     completedExerciseIds?: string[];
   }) =>
     request<{ workout: any }>('/api/workouts/adapt', {
@@ -94,12 +95,17 @@ export const api = {
       recent: any[];
     }>('/api/progress'),
 
-  getRecommendation: () =>
+  /** Pass local guest history so recommendation is per-device, not shared server file. */
+  getRecommendation: (history?: any[]) =>
     request<{
       message: string;
       suggestedLevel: string;
       suggestedImpact: string;
       suggestedDuration: number;
       basedOnSessions?: number;
-    }>('/api/coach/recommend'),
+      reason?: string;
+    }>('/api/coach/recommend', {
+      method: 'POST',
+      body: JSON.stringify({ history: history || [] }),
+    }),
 };
