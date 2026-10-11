@@ -1,4 +1,5 @@
 import { CompletedWorkout } from '../types/workout';
+import { api } from '../services/api';
 
 const HISTORY_KEY = 'fittv_history_v1';
 
@@ -19,7 +20,23 @@ export function saveHistory(history: CompletedWorkout[]) {
 export function addToHistory(record: CompletedWorkout) {
   const history = loadHistory();
   history.unshift(record);
-  // Keep last 50
   saveHistory(history.slice(0, 50));
+
+  // Best-effort sync to server (non-blocking)
+  api
+    .completeWorkout({
+      workoutId: record.workoutId,
+      title: record.title,
+      plannedDurationMinutes: record.plannedDurationMinutes,
+      actualDurationSeconds: record.actualDurationSeconds,
+      completedExercises: record.completedExercises,
+      totalExercises: record.totalExercises,
+      difficultyRating: record.difficultyRating,
+      status: record.status,
+    })
+    .catch(() => {
+      // Server unavailable – local history is enough for MVP
+    });
+
   return history;
 }
