@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Play, Clock3 } from 'lucide-react';
 import { getCuratedById } from '../data/curatedWorkouts';
+import { resolveDemo } from '../data/exerciseVideos';
 
 export function PreviewScreen() {
   const { id } = useParams<{ id: string }>();
@@ -74,6 +75,7 @@ export function PreviewScreen() {
               <Clock3 size={14} />
               {ex.durationSeconds ? `${ex.durationSeconds}s` : `${ex.reps} reps`}
               {ex.restSeconds ? ` + ${ex.restSeconds}s rest` : ''}
+              {resolveDemo(ex.name).available ? ' · Demo video' : ' · Form guide'}
             </div>
           </div>
         ))}

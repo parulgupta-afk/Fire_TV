@@ -1,80 +1,100 @@
 import React, { useState, useEffect } from 'react';
-import { AlertCircle, RefreshCw, VideoOff } from 'lucide-react';
+import { AlertCircle, Play, RefreshCw, Video, VideoOff } from 'lucide-react';
 import { ExerciseDemo, youtubeEmbedSrc } from '../data/exerciseVideos';
 
 interface Props {
   demo: ExerciseDemo;
-  /** When true, hide heavy media (e.g. during rest) */
   isResting?: boolean;
 }
 
 /**
- * Shows exercise demonstration video when available; otherwise form cues + written fallback.
- * Timer is independent — this component never drives workout timing.
+ * Plays a configured demo when available; otherwise form cues.
+ * Workout timer is independent of this component.
  */
 export function ExerciseDemoPanel({ demo, isResting = false }: Props) {
-  const [status, setStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle');
+  const [wantsPlay, setWantsPlay] = useState(false);
+  const [loadState, setLoadState] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle');
   const [retryKey, setRetryKey] = useState(0);
 
-  const canPlay =
-    !isResting &&
-    demo.available &&
-    ((demo.provider === 'youtube' && !!demo.youtubeVideoId) ||
-      (demo.provider === 'self_hosted' && !!demo.videoUrl));
+  const hasYoutube = demo.available && demo.provider === 'youtube' && !!demo.youtubeVideoId;
+  const hasSelf = demo.available && demo.provider === 'self_hosted' && !!demo.videoUrl;
+  const canOfferVideo = !isResting && (hasYoutube || hasSelf);
 
   useEffect(() => {
-    if (canPlay) {
-      setStatus('loading');
-    } else {
-      setStatus('idle');
-    }
-  }, [demo.key, canPlay, retryKey]);
+    setWantsPlay(false);
+    setLoadState('idle');
+  }, [demo.key, isResting]);
+
+  useEffect(() => {
+    if (wantsPlay && canOfferVideo) setLoadState('loading');
+  }, [wantsPlay, canOfferVideo, retryKey]);
 
   const onRetry = () => {
     setRetryKey((k) => k + 1);
-    setStatus('loading');
+    setLoadState('loading');
+    setWantsPlay(true);
   };
 
   return (
     <div className="demo-panel">
       <div className="demo-media">
-        {canPlay && demo.provider === 'youtube' && demo.youtubeVideoId ? (
+        {canOfferVideo && !wantsPlay && (
+          <div className="demo-placeholder">
+            <Video size={32} />
+            <p className="demo-placeholder-title">{demo.name}</p>
+            <p className="demo-placeholder-sub">Demonstration available — press Play when ready.</p>
+            <button type="button" className="button primary" onClick={() => setWantsPlay(true)}>
+              <Play size={18} /> Play demo
+            </button>
+            <ul className="demo-cues">
+              {demo.formCues.map((cue) => (
+                <li key={cue}>{cue}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {canOfferVideo && wantsPlay && hasYoutube && demo.youtubeVideoId && (
           <>
-            {status === 'loading' && (
+            {loadState === 'loading' && (
               <div className="demo-status">Loading demonstration…</div>
             )}
-            {status === 'error' && (
+            {loadState === 'error' && (
               <div className="demo-status demo-error">
                 <AlertCircle size={22} />
                 <p>Video could not load. Use the form cues below.</p>
                 <button type="button" className="button secondary" onClick={onRetry}>
-                  <RefreshCw size={16} /> Retry video
+                  <RefreshCw size={16} /> Retry
                 </button>
               </div>
             )}
             <iframe
               key={`${demo.youtubeVideoId}-${retryKey}`}
               title={`Demonstration: ${demo.name}`}
-              src={youtubeEmbedSrc(demo.youtubeVideoId)}
+              src={youtubeEmbedSrc(demo.youtubeVideoId, true)}
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
               className="demo-iframe"
-              onLoad={() => setStatus('ready')}
-              onError={() => setStatus('error')}
-              style={{ opacity: status === 'error' ? 0 : 1 }}
+              onLoad={() => setLoadState((s) => (s === 'error' ? s : 'ready'))}
+              style={{ opacity: loadState === 'error' ? 0 : 1 }}
             />
           </>
-        ) : canPlay && demo.provider === 'self_hosted' && demo.videoUrl ? (
+        )}
+
+        {canOfferVideo && wantsPlay && hasSelf && demo.videoUrl && (
           <video
             key={`${demo.videoUrl}-${retryKey}`}
             className="demo-video"
             src={demo.videoUrl}
             controls
             playsInline
-            onLoadedData={() => setStatus('ready')}
-            onError={() => setStatus('error')}
+            autoPlay
+            onLoadedData={() => setLoadState('ready')}
+            onError={() => setLoadState('error')}
           />
-        ) : (
+        )}
+
+        {!canOfferVideo && (
           <div className="demo-placeholder">
             <VideoOff size={28} />
             <p className="demo-placeholder-title">
@@ -82,8 +102,8 @@ export function ExerciseDemoPanel({ demo, isResting = false }: Props) {
             </p>
             <p className="demo-placeholder-sub">
               {isResting
-                ? 'Catch your breath. Next demo loads with the next exercise.'
-                : 'Written demonstration — no external video required.'}
+                ? 'Next demonstration loads with the next exercise.'
+                : 'Written demonstration — follow cues and the timer.'}
             </p>
             {!isResting && (
               <ul className="demo-cues">
@@ -102,13 +122,8 @@ export function ExerciseDemoPanel({ demo, isResting = false }: Props) {
           <p className="demo-fallback">{demo.fallbackInstructions}</p>
           {demo.attribution && (
             <p className="demo-attr">
-              {demo.attribution}
+              Source: {demo.attribution}
               {demo.licenseNote ? ` · ${demo.licenseNote}` : ''}
-            </p>
-          )}
-          {!demo.available && (
-            <p className="demo-attr">
-              Video demo not configured for this exercise. Follow the form cues and timer.
             </p>
           )}
         </div>

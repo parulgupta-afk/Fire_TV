@@ -1,1 +1,14 @@
-[]
+[
+  {
+    "id": "09e2356c-8993-4e13-8de6-097292cb1213",
+    "workoutId": "curated-core-focus",
+    "title": "Gentle Core Focus (Adapted) (Adapted)",
+    "completedAt": "2026-10-11T11:12:34.813Z",
+    "plannedDurationMinutes": 5,
+    "actualDurationSeconds": 15,
+    "completedExercises": 0,
+    "totalExercises": 5,
+    "difficultyRating": null,
+    "status": "stopped_early"
+  }
+]

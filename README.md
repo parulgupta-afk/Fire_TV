@@ -84,18 +84,29 @@ MIT (or as required by the hackathon).
 
 ## Exercise demonstrations
 
-The workout player shows a **demonstration panel** for the current exercise.
+The workout player shows a demonstration panel for the **current** exercise.
 
-- Catalogue: `client/src/data/exerciseVideos.ts` (keyed by exercise name).
-- When a permitted video is configured (`available: true` + YouTube id or self-hosted URL), the player can embed it.
-- **Current MVP:** all catalogue entries use **written form cues** — no third-party video URLs are invented or claimed as verified.
-- Workout **timer is independent** of video load/playback.
-- If video is missing or fails, written instructions and the timer continue.
+### Configured playable demos (YouTube embed)
+| Exercise | Source (attribution) |
+|----------|----------------------|
+| Bodyweight Squats | PureGym (`l83R5PblSMA`) |
+| Glute Bridge | PureGym (`tqp5XQPpTxY`) |
+| Bird Dog | Cincinnati Children's HealthWorks (`kGPVyMPpEQo`) |
+| Chair Squats | Pike Fitness (`mZhcnuXF3Ww`) |
+| Wall Push-ups | Brian Syuki (`b01muAD0_NI`) |
+| Reverse Lunges (gentle) | Cincinnati Children's (`QAseZL_2E20`) |
+| Dead Bug (Modified) | Keren Zumba (`YwxJwe4bBTo`) |
 
-### Adding a real video later
+Other catalogue exercises use **written form cues** only.
 
-1. Confirm you have rights to embed the source.
-2. Set `available: true`, `provider: 'youtube' | 'self_hosted'`, and `youtubeVideoId` or `videoUrl`.
-3. Fill `attribution` / `licenseNote`.
-4. Platform note: YouTube embeds may not behave the same on every Fire TV / Vega environment — validate on the official simulator.
+### Behavior
+- Press **Play demo** (autoplay-safe).
+- Timer independent of video.
+- Skip/adapt updates demo by exercise name.
+- Failure → form cues + Retry; workout continues.
+- Needs network for YouTube.
+- Fire TV / Vega embed **not verified** here — test on official simulator.
+
+### Add a video
+Edit `client/src/data/exerciseVideos.ts` with a permitted source + attribution.
 
