@@ -1,0 +1,16 @@
+{
+  "name": "fittv-ai",
+  "private": true,
+  "version": "0.5.0",
+  "description": "FitTV AI - TV-first adaptive fitness coach (client + server)",
+  "scripts": {
+    "dev": "concurrently \"npm run dev --prefix client\" \"npm run dev --prefix server\"",
+    "dev:client": "npm run dev --prefix client",
+    "dev:server": "npm run dev --prefix server",
+    "build": "npm run build --prefix client",
+    "install:all": "npm install --prefix client && npm install --prefix server"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.1"
+  }
+}
