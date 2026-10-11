@@ -6,10 +6,23 @@ import { PlayerSnapshot, CompletedWorkout } from '../types/workout';
 import { Focusable } from '../components/Focusable';
 import { addToHistory } from '../utils/storage';
 
+function resolvePlan(id: string | undefined) {
+  if (!id) return null;
+  if (id === 'generated') {
+    try {
+      const raw = sessionStorage.getItem('fittv_generated_plan');
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  }
+  return getCuratedById(id) || null;
+}
+
 export function PlayerScreen() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const plan = id ? getCuratedById(id) : undefined;
+  const plan = resolvePlan(id);
   const engineRef = useRef<WorkoutEngine | null>(null);
   const [snapshot, setSnapshot] = useState<PlayerSnapshot | null>(null);
   const [showAdapt, setShowAdapt] = useState(false);
@@ -27,7 +40,6 @@ export function PlayerScreen() {
       }
     );
 
-    // Auto-start after a short beat for better UX
     const t = setTimeout(() => engine.start(), 400);
     return () => {
       clearTimeout(t);

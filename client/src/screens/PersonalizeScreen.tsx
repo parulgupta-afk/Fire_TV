@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Focusable } from '../components/Focusable';
+import { api } from '../services/api';
 import { getAllCurated } from '../data/curatedWorkouts';
 
 const GOALS = ['Build strength', 'Improve mobility', 'Raise energy', 'Core stability'];
@@ -14,21 +15,37 @@ export function PersonalizeScreen() {
   const [level, setLevel] = useState<(typeof LEVELS)[number]>('beginner');
   const [duration, setDuration] = useState(15);
   const [impact, setImpact] = useState<(typeof IMPACTS)[number]>('low');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleGenerate = () => {
-    // Phase 3/4: map to closest curated workout (real AI arrives in Phase 6)
-    const curated = getAllCurated();
-    const match =
-      curated.find(
-        (w) =>
-          w.level === level &&
-          w.impact === impact &&
-          Math.abs(w.estimatedDurationMinutes - duration) <= 5
-      ) || curated[0];
-
-    navigate(`/preview/${match.id}`, {
-      state: { personalized: { goal, level, duration, impact } },
-    });
+  const handleGenerate = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await api.generateWorkout({
+        goal,
+        level,
+        durationMinutes: duration,
+        impact,
+      });
+      // Store generated plan temporarily and go to a dynamic preview
+      sessionStorage.setItem('fittv_generated_plan', JSON.stringify(res.workout));
+      navigate('/preview/generated');
+    } catch (err: any) {
+      // Fallback to curated
+      const curated = getAllCurated();
+      const match =
+        curated.find(
+          (w) =>
+            w.level === level &&
+            w.impact === impact &&
+            Math.abs(w.estimatedDurationMinutes - duration) <= 5
+        ) || curated[0];
+      setError(err?.message || 'Generation unavailable – using curated plan.');
+      setTimeout(() => navigate(`/preview/${match.id}`), 1200);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -38,7 +55,11 @@ export function PersonalizeScreen() {
       </Focusable>
 
       <h1>Personalize Your Workout</h1>
-      <p>Tell us a few preferences. We’ll pick the best starting plan.</p>
+      <p>Tell us a few preferences. We’ll generate a structured plan.</p>
+
+      {error && (
+        <p style={{ color: 'var(--warning)', marginTop: 12 }}>{error}</p>
+      )}
 
       <section style={{ marginTop: 32 }}>
         <h3>Goal</h3>
@@ -105,8 +126,13 @@ export function PersonalizeScreen() {
       </section>
 
       <div className="row" style={{ marginTop: 48 }}>
-        <Focusable as="button" className="btn btn-primary" autoFocus onSelect={handleGenerate}>
-          Generate Plan
+        <Focusable
+          as="button"
+          className="btn btn-primary"
+          autoFocus
+          onSelect={loading ? undefined : handleGenerate}
+        >
+          {loading ? 'Generating…' : 'Generate Plan'}
         </Focusable>
       </div>
     </div>

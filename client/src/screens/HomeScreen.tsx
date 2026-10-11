@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getAllCurated } from '../data/curatedWorkouts';
 import { Focusable } from '../components/Focusable';
 import { loadHistory } from '../utils/storage';
 import { totalMinutes, calculateStreak } from '../features/workouts/workoutEngine';
+import { api } from '../services/api';
 
 export function HomeScreen() {
   const navigate = useNavigate();
@@ -11,6 +12,14 @@ export function HomeScreen() {
   const history = loadHistory();
   const mins = totalMinutes(history);
   const streak = calculateStreak(history);
+  const [rec, setRec] = useState<string | null>(null);
+
+  useEffect(() => {
+    api
+      .getRecommendation()
+      .then((r) => setRec(r.message))
+      .catch(() => setRec(null));
+  }, []);
 
   return (
     <div className="app-shell">
@@ -18,6 +27,13 @@ export function HomeScreen() {
         <h1>FitTV AI</h1>
         <p>Your living-room fitness coach</p>
       </header>
+
+      {rec && (
+        <div className="card" style={{ marginBottom: 28, maxWidth: 700 }}>
+          <strong>Coach tip</strong>
+          <p style={{ margin: '8px 0 0' }}>{rec}</p>
+        </div>
+      )}
 
       <div className="row" style={{ marginBottom: 40 }}>
         <Focusable
@@ -54,7 +70,7 @@ export function HomeScreen() {
 
       <h2 style={{ marginBottom: 20 }}>Ready to Start</h2>
       <div className="grid grid-3">
-        {curated.map((w, idx) => (
+        {curated.map((w) => (
           <Focusable
             key={w.id}
             className="card"

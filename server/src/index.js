@@ -3,32 +3,34 @@ import cors from 'cors';
 import { v4 as uuidv4 } from 'uuid';
 import { CURATED_WORKOUTS } from './data/curated.js';
 import { getHistory, addCompletedWorkout, getProgressSummary } from './store.js';
+import { generateWorkout, getFallbackWorkout } from './ai/workoutGenerator.js';
+import { adaptWorkout } from './ai/adapter.js';
+import { getRecommendation } from './ai/memory.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
 app.use(cors());
-app.use(express.json({ limit: '100kb' }));
+app.use(express.json({ limit: '120kb' }));
 
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} ${req.method} ${req.path}`);
   next();
 });
 
+// Health
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
     service: 'fittv-ai-server',
-    version: '0.5.0',
+    version: '0.8.0',
     timestamp: new Date().toISOString(),
   });
 });
 
+// Curated
 app.get('/api/workouts/ready', (req, res) => {
-  res.json({
-    workouts: CURATED_WORKOUTS,
-    count: CURATED_WORKOUTS.length,
-  });
+  res.json({ workouts: CURATED_WORKOUTS, count: CURATED_WORKOUTS.length });
 });
 
 app.get('/api/workouts/ready/:id', (req, res) => {
@@ -41,6 +43,42 @@ app.get('/api/workouts/ready/:id', (req, res) => {
   res.json({ workout });
 });
 
+// Phase 6 – Generate
+app.post('/api/workouts/generate', async (req, res) => {
+  try {
+    const prefs = {
+      goal: req.body?.goal,
+      level: req.body?.level,
+      durationMinutes: req.body?.durationMinutes ?? req.body?.duration,
+      impact: req.body?.impact,
+      equipment: req.body?.equipment || [],
+    };
+    const plan = await generateWorkout(prefs);
+    res.json({ workout: plan, source: plan.source || 'generator' });
+  } catch (err) {
+    console.error('Generate error:', err.message);
+    const fallback = getFallbackWorkout();
+    res.status(200).json({
+      workout: fallback,
+      source: 'curated-fallback',
+      warning: 'Generation failed, returned safe fallback.',
+    });
+  }
+});
+
+// Phase 7 – Adapt
+app.post('/api/workouts/adapt', (req, res) => {
+  const { plan, options, completedExerciseIds } = req.body || {};
+  const result = adaptWorkout(plan, options || {}, completedExerciseIds || []);
+  if (!result.ok) {
+    return res.status(400).json({
+      error: { code: 'ADAPT_FAILED', message: result.error || 'Could not adapt workout.' },
+    });
+  }
+  res.json({ workout: result.plan });
+});
+
+// Complete
 app.post('/api/workouts/complete', (req, res) => {
   const body = req.body || {};
   if (!body.workoutId || !body.title) {
@@ -64,6 +102,7 @@ app.post('/api/workouts/complete', (req, res) => {
   res.status(201).json({ success: true, record: saved });
 });
 
+// Progress + memory
 app.get('/api/progress', (req, res) => {
   res.json(getProgressSummary());
 });
@@ -73,26 +112,14 @@ app.get('/api/history', (req, res) => {
   res.json({ history: getHistory(limit) });
 });
 
-app.post('/api/workouts/generate', (req, res) => {
-  res.status(501).json({
-    error: {
-      code: 'NOT_IMPLEMENTED',
-      message: 'AI workout generation will be added in Phase 6. Use /api/workouts/ready for now.',
-    },
-  });
+// Phase 8 – Recommendation from feedback memory
+app.get('/api/coach/recommend', (req, res) => {
+  res.json(getRecommendation());
 });
 
-app.post('/api/workouts/adapt', (req, res) => {
-  res.status(501).json({
-    error: {
-      code: 'NOT_IMPLEMENTED',
-      message: 'Server-side adaptation will be enhanced in Phase 7. Client-side adapt is available.',
-    },
-  });
-});
-
+// Errors
 app.use((err, req, res, next) => {
-  console.error('Unhandled error:', err.message);
+  console.error('Unhandled:', err.message);
   res.status(500).json({
     error: { code: 'INTERNAL_ERROR', message: 'Something went wrong.' },
   });
@@ -105,6 +132,5 @@ app.use((req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`FitTV AI server running on http://localhost:${PORT}`);
-  console.log(`Health: http://localhost:${PORT}/api/health`);
+  console.log(`FitTV AI server v0.8 running on http://localhost:${PORT}`);
 });

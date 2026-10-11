@@ -1,12 +1,11 @@
 # FitTV AI
 
-TV-first adaptive AI fitness coach for the Amazon Fire TV track (Fire OS / Vega OS).
+TV-first adaptive AI fitness coach for Amazon Fire TV (Fire OS / Vega OS).
 
 ```
 fittv-ai/
-├── client/          ← React + TypeScript TV frontend
-├── server/          ← Express API + file persistence
-├── package.json
+├── client/     ← React + TypeScript TV frontend
+├── server/     ← Express API + AI generator + persistence
 └── README.md
 ```
 
@@ -26,26 +25,35 @@ npm run dev
 | Phase | Status |
 |-------|--------|
 | 0 Platform Validation | Done |
-| 1 Requirements / PRD | Done |
-| 2 Project Foundation | Done |
-| 3 TV UI + Mock Data | Done |
+| 1 Requirements | Done |
+| 2 Foundation | Done |
+| 3 TV UI | Done |
 | 4 Workout Engine | Done |
 | 5 Backend + Persistence | Done |
-| 6 AI Generation | Next |
+| 6 AI Workout Generation | Done |
+| 7 Adaptive Coach | Done |
+| 8 Progress + Memory | Done |
 
-## API Endpoints (Phase 5)
+## What works
 
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | /api/health | Health check |
-| GET | /api/workouts/ready | List curated workouts |
-| GET | /api/workouts/ready/:id | Single curated workout |
-| POST | /api/workouts/complete | Save completed session |
-| GET | /api/progress | Sessions, minutes, streak |
-| GET | /api/history | Recent history |
-| POST | /api/workouts/generate | (501 – Phase 6) |
-| POST | /api/workouts/adapt | (501 – Phase 7) |
+- Personalized plan generation (structured + validated, curated fallback)
+- Curated offline workouts
+- Guided player with timer, pause, skip, adapt (shorter / easier)
+- Difficulty feedback after sessions
+- Coach recommendation based on past feedback
+- Progress, minutes, streak
+- Client works offline; server sync is best-effort
 
-Persistence: JSON file at `server/data/history.json` (simple & reliable for MVP).
+## API
 
-Client still works fully offline via localStorage. Server sync is best-effort.
+| Method | Path | Notes |
+|--------|------|-------|
+| GET | /api/health | Health |
+| GET | /api/workouts/ready | Curated list |
+| POST | /api/workouts/generate | AI / deterministic plan |
+| POST | /api/workouts/adapt | Adapt remaining exercises |
+| POST | /api/workouts/complete | Save session |
+| GET | /api/progress | Stats + recent |
+| GET | /api/coach/recommend | Feedback-based tip |
+
+Optional: set `OPENAI_API_KEY` in server env later for real LLM (currently uses safe deterministic generator + validation).

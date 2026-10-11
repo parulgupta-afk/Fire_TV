@@ -7,7 +7,7 @@ export interface ApiError {
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 8000);
+  const timeout = setTimeout(() => controller.abort(), 10000);
 
   try {
     const res = await fetch(`${API_BASE}${path}`, {
@@ -49,6 +49,28 @@ export const api = {
   getWorkout: (id: string) =>
     request<{ workout: any }>(`/api/workouts/ready/${id}`),
 
+  generateWorkout: (prefs: {
+    goal?: string;
+    level?: string;
+    durationMinutes?: number;
+    impact?: string;
+    equipment?: string[];
+  }) =>
+    request<{ workout: any; source?: string; warning?: string }>('/api/workouts/generate', {
+      method: 'POST',
+      body: JSON.stringify(prefs),
+    }),
+
+  adaptWorkout: (payload: {
+    plan: any;
+    options: { shorter?: boolean; easier?: boolean; noJumping?: boolean };
+    completedExerciseIds?: string[];
+  }) =>
+    request<{ workout: any }>('/api/workouts/adapt', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+
   completeWorkout: (payload: {
     workoutId: string;
     title: string;
@@ -58,10 +80,11 @@ export const api = {
     totalExercises: number;
     difficultyRating?: string;
     status: 'completed' | 'stopped_early';
-  }) => request<{ success: boolean; record: any }>('/api/workouts/complete', {
-    method: 'POST',
-    body: JSON.stringify(payload),
-  }),
+  }) =>
+    request<{ success: boolean; record: any }>('/api/workouts/complete', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
 
   getProgress: () =>
     request<{
@@ -70,4 +93,13 @@ export const api = {
       streak: number;
       recent: any[];
     }>('/api/progress'),
+
+  getRecommendation: () =>
+    request<{
+      message: string;
+      suggestedLevel: string;
+      suggestedImpact: string;
+      suggestedDuration: number;
+      basedOnSessions?: number;
+    }>('/api/coach/recommend'),
 };
