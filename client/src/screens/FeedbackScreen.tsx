@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Focusable } from '../components/Focusable';
+import { Check } from 'lucide-react';
 import { CompletedWorkout, DifficultyRating } from '../types/workout';
 import { loadHistory, saveHistory } from '../utils/storage';
 
@@ -23,49 +23,41 @@ export function FeedbackScreen() {
   };
 
   return (
-    <div className="app-shell" style={{ textAlign: 'center' }}>
-      <h1>Session Complete</h1>
+    <div className="page-pad" style={{ textAlign: 'center', maxWidth: 720, margin: '0 auto' }}>
+      <p className="overline">Session complete</p>
+      <h1>How did that feel?</h1>
       {record && (
-        <p>
+        <p className="lede">
           You finished <strong>{record.completedExercises}</strong> of{' '}
           <strong>{record.totalExercises}</strong> exercises in{' '}
           <strong>{Math.round(record.actualDurationSeconds / 60)}</strong> minutes.
         </p>
       )}
 
-      <h2 style={{ marginTop: 40 }}>How did that feel?</h2>
-      <div className="row" style={{ justifyContent: 'center', marginTop: 24 }}>
-        <Focusable
-          as="button"
-          className={`btn ${selected === 'too_easy' ? 'btn-primary' : 'btn-ghost'}`}
-          onSelect={() => saveRating('too_easy')}
-        >
-          Too Easy
-        </Focusable>
-        <Focusable
-          as="button"
-          className={`btn ${selected === 'just_right' ? 'btn-primary' : 'btn-ghost'}`}
-          autoFocus
-          onSelect={() => saveRating('just_right')}
-        >
-          Just Right
-        </Focusable>
-        <Focusable
-          as="button"
-          className={`btn ${selected === 'too_hard' ? 'btn-primary' : 'btn-ghost'}`}
-          onSelect={() => saveRating('too_hard')}
-        >
-          Too Hard
-        </Focusable>
+      <div className="choice-row" style={{ justifyContent: 'center', marginTop: 32 }}>
+        {([
+          ['too_easy', 'Too easy'],
+          ['just_right', 'Just right'],
+          ['too_hard', 'Too hard'],
+        ] as const).map(([value, label]) => (
+          <button
+            key={value}
+            type="button"
+            className={`choice-chip ${selected === value ? 'active' : ''}`}
+            onClick={() => saveRating(value)}
+          >
+            {selected === value && <Check size={14} />} {label}
+          </button>
+        ))}
       </div>
 
-      <div className="row" style={{ justifyContent: 'center', marginTop: 48 }}>
-        <Focusable as="button" className="btn btn-primary" onSelect={() => navigate('/progress')}>
-          View Progress
-        </Focusable>
-        <Focusable as="button" className="btn btn-ghost" onSelect={() => navigate('/')}>
+      <div style={{ display: 'flex', gap: 12, justifyContent: 'center', marginTop: 40 }}>
+        <button type="button" className="button primary" onClick={() => navigate('/progress')}>
+          View progress
+        </button>
+        <button type="button" className="button secondary" onClick={() => navigate('/')}>
           Home
-        </Focusable>
+        </button>
       </div>
     </div>
   );

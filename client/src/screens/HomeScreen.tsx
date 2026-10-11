@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ArrowUpRight, Clock3, Flame, Sparkles, Target, Trophy } from 'lucide-react';
 import { getAllCurated } from '../data/curatedWorkouts';
-import { Focusable } from '../components/Focusable';
 import { loadHistory } from '../utils/storage';
 import { totalMinutes, calculateStreak } from '../features/workouts/workoutEngine';
 import { api } from '../services/api';
+
+const accents = ['lime', 'coral', 'violet', 'blue'] as const;
 
 export function HomeScreen() {
   const navigate = useNavigate();
@@ -15,82 +17,92 @@ export function HomeScreen() {
   const [rec, setRec] = useState<string | null>(null);
 
   useEffect(() => {
-    api
-      .getRecommendation()
-      .then((r) => setRec(r.message))
-      .catch(() => setRec(null));
+    api.getRecommendation().then((r) => setRec(r.message)).catch(() => setRec(null));
   }, []);
 
   return (
-    <div className="app-shell">
-      <header style={{ marginBottom: 40 }}>
-        <h1>FitTV AI</h1>
-        <p>Your living-room fitness coach</p>
+    <div className="page-pad">
+      <header className="page-header">
+        <div>
+          <p className="overline">Tonight on FitTV</p>
+          <h1>Train in the living room</h1>
+          <p className="lede">
+            Structured plans, remote-friendly coaching, and quick adaptations when time or energy shifts.
+          </p>
+        </div>
+        <button type="button" className="button primary" onClick={() => navigate('/personalize')}>
+          <Sparkles size={16} />
+          Personalize workout
+        </button>
       </header>
 
       {rec && (
-        <div className="card" style={{ marginBottom: 28, maxWidth: 700 }}>
-          <strong>Coach tip</strong>
-          <p style={{ margin: '8px 0 0' }}>{rec}</p>
+        <div className="coach-callout" style={{ marginBottom: 28 }}>
+          <Sparkles size={18} />
+          <div>
+            <strong>Coach tip</strong>
+            <p>{rec}</p>
+          </div>
         </div>
       )}
 
-      <div className="row" style={{ marginBottom: 40 }}>
-        <Focusable
-          as="button"
-          className="btn btn-primary"
-          autoFocus
-          onSelect={() => navigate('/personalize')}
-        >
-          Start Personalized Workout
-        </Focusable>
-        <Focusable
-          as="button"
-          className="btn btn-ghost"
-          onSelect={() => navigate('/progress')}
-        >
-          Progress
-        </Focusable>
-      </div>
-
-      <div className="row" style={{ marginBottom: 32, gap: 32 }}>
-        <div>
-          <div style={{ fontSize: 36, fontWeight: 700 }}>{history.length}</div>
-          <div style={{ color: 'var(--text-muted)' }}>Sessions</div>
+      <div className="stats-grid">
+        <div className="stat-card lime">
+          <p className="overline">Sessions</p>
+          <strong style={{ fontSize: 36 }}>{history.length}</strong>
+          <span>Completed</span>
         </div>
-        <div>
-          <div style={{ fontSize: 36, fontWeight: 700 }}>{mins}</div>
-          <div style={{ color: 'var(--text-muted)' }}>Minutes</div>
+        <div className="stat-card coral">
+          <p className="overline">Minutes</p>
+          <strong style={{ fontSize: 36 }}>{mins}</strong>
+          <span>Active time</span>
         </div>
-        <div>
-          <div style={{ fontSize: 36, fontWeight: 700 }}>{streak}</div>
-          <div style={{ color: 'var(--text-muted)' }}>Day Streak</div>
+        <div className="stat-card violet">
+          <p className="overline">Streak</p>
+          <strong style={{ fontSize: 36 }}>{streak}</strong>
+          <span>Days</span>
+        </div>
+        <div className="insight-card">
+          <div className="chart-header">
+            <Trophy size={16} />
+            <span>Keep the rhythm</span>
+          </div>
+          <p style={{ margin: '12px 0 0', color: 'var(--muted)' }}>
+            Start a short curated session or generate a plan that matches your energy tonight.
+          </p>
         </div>
       </div>
 
-      <h2 style={{ marginBottom: 20 }}>Ready to Start</h2>
-      <div className="grid grid-3">
-        {curated.map((w) => (
-          <Focusable
+      <div className="section-heading">
+        <div>
+          <p className="overline">Ready to start</p>
+          <h2>Curated for the couch</h2>
+        </div>
+        <button type="button" className="text-button" onClick={() => navigate('/personalize')}>
+          Generate new <ArrowUpRight size={14} />
+        </button>
+      </div>
+
+      <div className="explore-grid">
+        {curated.map((w, i) => (
+          <button
             key={w.id}
-            className="card"
-            onSelect={() => navigate(`/preview/${w.id}`)}
+            type="button"
+            className={`explore-card ${accents[i % accents.length]}`}
+            onClick={() => navigate(`/preview/${w.id}`)}
           >
-            <h3>{w.title}</h3>
-            <p style={{ marginBottom: 12 }}>{w.goal}</p>
-            <div className="row" style={{ gap: 8 }}>
-              <span className="badge badge-beginner">{w.level}</span>
-              <span className="badge">{w.estimatedDurationMinutes} min</span>
-              <span className={`badge ${w.impact === 'low' ? 'badge-low' : ''}`}>
-                {w.impact} impact
-              </span>
+            <div className="explore-card-body">
+              <p className="card-eyebrow">{w.goal}</p>
+              <h3>{w.title}</h3>
+              <p>{w.coachNotes || w.goal}</p>
+              <div className="meta-row">
+                <span><Clock3 size={13} /> {w.estimatedDurationMinutes} min</span>
+                <span><Target size={13} /> {w.level}</span>
+                <span><Flame size={13} /> {w.impact}</span>
+              </div>
             </div>
-          </Focusable>
+          </button>
         ))}
-      </div>
-
-      <div className="dev-hint">
-        Local dev: Use Tab / Arrow keys + Enter. On Fire TV use the remote.
       </div>
     </div>
   );

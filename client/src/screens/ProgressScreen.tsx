@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Focusable } from '../components/Focusable';
+import { ArrowLeft, Trophy } from 'lucide-react';
 import { loadHistory } from '../utils/storage';
 import { totalMinutes, calculateStreak } from '../features/workouts/workoutEngine';
 
@@ -11,62 +11,73 @@ export function ProgressScreen() {
   const streak = calculateStreak(history);
 
   return (
-    <div className="app-shell">
-      <Focusable as="button" className="btn btn-ghost" onSelect={() => navigate('/')} style={{ marginBottom: 24 }}>
-        ← Home
-      </Focusable>
+    <div className="page-pad">
+      <button type="button" className="back-button" onClick={() => navigate('/')}>
+        <ArrowLeft size={16} /> Home
+      </button>
 
-      <h1>Your Progress</h1>
+      <header className="page-header" style={{ marginTop: 18 }}>
+        <div>
+          <p className="overline">Progress</p>
+          <h1>Your training log</h1>
+        </div>
+      </header>
 
-      <div className="row" style={{ margin: '32px 0', gap: 48 }}>
-        <div>
-          <div style={{ fontSize: 48, fontWeight: 800 }}>{history.length}</div>
-          <div style={{ color: 'var(--text-muted)' }}>Total Sessions</div>
+      <div className="stats-grid" style={{ marginBottom: 32 }}>
+        <div className="stat-card lime">
+          <p className="overline">Sessions</p>
+          <strong style={{ fontSize: 36 }}>{history.length}</strong>
         </div>
-        <div>
-          <div style={{ fontSize: 48, fontWeight: 800 }}>{mins}</div>
-          <div style={{ color: 'var(--text-muted)' }}>Minutes</div>
+        <div className="stat-card coral">
+          <p className="overline">Minutes</p>
+          <strong style={{ fontSize: 36 }}>{mins}</strong>
         </div>
-        <div>
-          <div style={{ fontSize: 48, fontWeight: 800 }}>{streak}</div>
-          <div style={{ color: 'var(--text-muted)' }}>Day Streak</div>
+        <div className="stat-card violet">
+          <p className="overline">Streak</p>
+          <strong style={{ fontSize: 36 }}>{streak}</strong>
+        </div>
+        <div className="insight-card">
+          <div className="chart-header">
+            <Trophy size={16} />
+            <span>Consistency</span>
+          </div>
+          <p style={{ margin: '12px 0 0', color: 'var(--muted)' }}>
+            Rate sessions after each workout so recommendations stay honest.
+          </p>
         </div>
       </div>
 
-      <h2 style={{ marginBottom: 16 }}>Recent Sessions</h2>
+      <div className="section-heading">
+        <div>
+          <p className="overline">History</p>
+          <h2>Recent sessions</h2>
+        </div>
+      </div>
 
       {history.length === 0 ? (
         <div className="empty-state">
           <p>No workouts yet. Complete your first session!</p>
-          <Focusable as="button" className="btn btn-primary" onSelect={() => navigate('/')}>
-            Start a Workout
-          </Focusable>
+          <button type="button" className="button primary" onClick={() => navigate('/')}>
+            Start a workout
+          </button>
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 800 }}>
+        <div className="history-list">
           {history.slice(0, 15).map((h) => (
-            <div key={h.id} className="card" style={{ padding: '16px 20px' }}>
-              <div className="row" style={{ justifyContent: 'space-between' }}>
+            <div key={h.id} className="history-item">
+              <div>
                 <strong>{h.title}</strong>
-                <span style={{ color: 'var(--text-muted)', fontSize: 18 }}>
-                  {new Date(h.completedAt).toLocaleDateString()}
-                </span>
+                <p>
+                  {h.completedExercises}/{h.totalExercises} exercises ·{' '}
+                  {Math.round(h.actualDurationSeconds / 60)} min
+                  {h.difficultyRating
+                    ? ` · ${h.difficultyRating.replace('_', ' ')}`
+                    : ''}
+                </p>
               </div>
-              <div className="row" style={{ gap: 12, marginTop: 6, fontSize: 18 }}>
-                <span>
-                  {h.completedExercises}/{h.totalExercises} exercises
-                </span>
-                <span>·</span>
-                <span>{Math.round(h.actualDurationSeconds / 60)} min</span>
-                {h.difficultyRating && (
-                  <>
-                    <span>·</span>
-                    <span style={{ textTransform: 'capitalize' }}>
-                      {h.difficultyRating.replace('_', ' ')}
-                    </span>
-                  </>
-                )}
-              </div>
+              <span className="history-date">
+                {new Date(h.completedAt).toLocaleDateString()}
+              </span>
             </div>
           ))}
         </div>

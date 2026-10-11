@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { ArrowLeft, Play, Clock3 } from 'lucide-react';
 import { getCuratedById } from '../data/curatedWorkouts';
-import { Focusable } from '../components/Focusable';
 
 export function PreviewScreen() {
   const { id } = useParams<{ id: string }>();
@@ -21,62 +21,62 @@ export function PreviewScreen() {
 
   if (!plan) {
     return (
-      <div className="app-shell">
-        <div className="error-state">
+      <div className="page-pad">
+        <div className="empty-state">
           <h2>Workout not found</h2>
-          <Focusable as="button" className="btn btn-primary" onSelect={() => navigate('/')}>
-            Back Home
-          </Focusable>
+          <button type="button" className="button primary" onClick={() => navigate('/')}>
+            Back home
+          </button>
         </div>
       </div>
     );
   }
 
-  const startPath =
-    id === 'generated' ? '/player/generated' : `/player/${plan.id}`;
+  const startPath = id === 'generated' ? '/player/generated' : `/player/${plan.id}`;
 
   return (
-    <div className="app-shell">
-      <Focusable as="button" className="btn btn-ghost" onSelect={() => navigate(-1)} style={{ marginBottom: 24 }}>
-        ← Back
-      </Focusable>
+    <div className="page-pad">
+      <button type="button" className="back-button" onClick={() => navigate(-1)}>
+        <ArrowLeft size={16} /> Back
+      </button>
 
-      <h1>{plan.title}</h1>
-      <p>
-        {plan.goal} · {plan.level} · {plan.estimatedDurationMinutes} min · {plan.impact} impact
-        {plan.source ? ` · ${plan.source}` : ''}
-      </p>
-      {plan.coachNotes && (
-        <p style={{ fontStyle: 'italic', maxWidth: 700 }}>{plan.coachNotes}</p>
-      )}
+      <header className="page-header" style={{ marginTop: 18 }}>
+        <div>
+          <p className="overline">{plan.goal}</p>
+          <h1>{plan.title}</h1>
+          <p className="lede">
+            {plan.level} · {plan.estimatedDurationMinutes} min · {plan.impact} impact
+            {plan.source ? ` · ${plan.source}` : ''}
+          </p>
+          {plan.coachNotes && <p style={{ color: 'var(--muted)', maxWidth: 640 }}>{plan.coachNotes}</p>}
+        </div>
+        <button type="button" className="button primary" onClick={() => navigate(startPath)}>
+          <Play size={16} /> Start workout
+        </button>
+      </header>
 
-      <h2 style={{ marginTop: 32, marginBottom: 16 }}>Exercises</h2>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 800 }}>
-        {plan.exercises.map((ex: any, i: number) => (
-          <div key={ex.id || i} className="card" style={{ padding: '16px 20px' }}>
-            <div className="row" style={{ justifyContent: 'space-between' }}>
-              <strong>
-                {i + 1}. {ex.name}
-              </strong>
-              <span style={{ color: 'var(--text-muted)' }}>
-                {ex.durationSeconds ? `${ex.durationSeconds}s` : `${ex.reps} reps`}
-                {ex.restSeconds ? ` + ${ex.restSeconds}s rest` : ''}
-              </span>
-            </div>
-            <p style={{ margin: '6px 0 0', fontSize: 18 }}>{ex.instructions}</p>
-          </div>
-        ))}
+      <div className="section-heading">
+        <div>
+          <p className="overline">Session plan</p>
+          <h2>Exercises</h2>
+        </div>
       </div>
 
-      <div className="row" style={{ marginTop: 40 }}>
-        <Focusable
-          as="button"
-          className="btn btn-primary"
-          autoFocus
-          onSelect={() => navigate(startPath)}
-        >
-          Start Workout
-        </Focusable>
+      <div className="plan-list">
+        {plan.exercises.map((ex: any, i: number) => (
+          <div key={ex.id || i} className="plan-item">
+            <div className="plan-index">{String(i + 1).padStart(2, '0')}</div>
+            <div className="plan-body">
+              <strong>{ex.name}</strong>
+              <p>{ex.instructions}</p>
+            </div>
+            <div className="plan-meta">
+              <Clock3 size={14} />
+              {ex.durationSeconds ? `${ex.durationSeconds}s` : `${ex.reps} reps`}
+              {ex.restSeconds ? ` + ${ex.restSeconds}s rest` : ''}
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );

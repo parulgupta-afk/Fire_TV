@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Focusable } from '../components/Focusable';
+import { ArrowLeft, Sparkles } from 'lucide-react';
 import { api } from '../services/api';
 import { getAllCurated } from '../data/curatedWorkouts';
 
@@ -22,17 +22,10 @@ export function PersonalizeScreen() {
     setLoading(true);
     setError(null);
     try {
-      const res = await api.generateWorkout({
-        goal,
-        level,
-        durationMinutes: duration,
-        impact,
-      });
-      // Store generated plan temporarily and go to a dynamic preview
+      const res = await api.generateWorkout({ goal, level, durationMinutes: duration, impact });
       sessionStorage.setItem('fittv_generated_plan', JSON.stringify(res.workout));
       navigate('/preview/generated');
     } catch (err: any) {
-      // Fallback to curated
       const curated = getAllCurated();
       const match =
         curated.find(
@@ -49,92 +42,94 @@ export function PersonalizeScreen() {
   };
 
   return (
-    <div className="app-shell">
-      <Focusable as="button" className="btn btn-ghost" onSelect={() => navigate(-1)} style={{ marginBottom: 24 }}>
-        ← Back
-      </Focusable>
+    <div className="page-pad">
+      <button type="button" className="back-button" onClick={() => navigate(-1)}>
+        <ArrowLeft size={16} /> Back
+      </button>
 
-      <h1>Personalize Your Workout</h1>
-      <p>Tell us a few preferences. We’ll generate a structured plan.</p>
+      <header className="page-header" style={{ marginTop: 18 }}>
+        <div>
+          <p className="overline">Personalize</p>
+          <h1>Shape tonight’s session</h1>
+          <p className="lede">We’ll build a structured plan from your preferences, with a safe fallback if needed.</p>
+        </div>
+      </header>
 
-      {error && (
-        <p style={{ color: 'var(--warning)', marginTop: 12 }}>{error}</p>
-      )}
+      {error && <p style={{ color: 'var(--coral)', marginBottom: 16 }}>{error}</p>}
 
-      <section style={{ marginTop: 32 }}>
+      <section className="panel" style={{ marginBottom: 18 }}>
         <h3>Goal</h3>
-        <div className="row">
+        <div className="choice-row">
           {GOALS.map((g) => (
-            <Focusable
+            <button
               key={g}
-              as="button"
-              className={`btn ${goal === g ? 'btn-primary' : 'btn-ghost'}`}
-              onSelect={() => setGoal(g)}
+              type="button"
+              className={`choice-chip ${goal === g ? 'active' : ''}`}
+              onClick={() => setGoal(g)}
             >
               {g}
-            </Focusable>
+            </button>
           ))}
         </div>
       </section>
 
-      <section style={{ marginTop: 28 }}>
-        <h3>Experience Level</h3>
-        <div className="row">
+      <section className="panel" style={{ marginBottom: 18 }}>
+        <h3>Experience level</h3>
+        <div className="choice-row">
           {LEVELS.map((l) => (
-            <Focusable
+            <button
               key={l}
-              as="button"
-              className={`btn ${level === l ? 'btn-primary' : 'btn-ghost'}`}
-              onSelect={() => setLevel(l)}
+              type="button"
+              className={`choice-chip ${level === l ? 'active' : ''}`}
+              onClick={() => setLevel(l)}
             >
               {l}
-            </Focusable>
+            </button>
           ))}
         </div>
       </section>
 
-      <section style={{ marginTop: 28 }}>
+      <section className="panel" style={{ marginBottom: 18 }}>
         <h3>Duration (minutes)</h3>
-        <div className="row">
+        <div className="choice-row">
           {DURATIONS.map((d) => (
-            <Focusable
+            <button
               key={d}
-              as="button"
-              className={`btn ${duration === d ? 'btn-primary' : 'btn-ghost'}`}
-              onSelect={() => setDuration(d)}
+              type="button"
+              className={`choice-chip ${duration === d ? 'active' : ''}`}
+              onClick={() => setDuration(d)}
             >
               {d}
-            </Focusable>
+            </button>
           ))}
         </div>
       </section>
 
-      <section style={{ marginTop: 28 }}>
-        <h3>Impact Preference</h3>
-        <div className="row">
+      <section className="panel" style={{ marginBottom: 28 }}>
+        <h3>Impact preference</h3>
+        <div className="choice-row">
           {IMPACTS.map((i) => (
-            <Focusable
+            <button
               key={i}
-              as="button"
-              className={`btn ${impact === i ? 'btn-primary' : 'btn-ghost'}`}
-              onSelect={() => setImpact(i)}
+              type="button"
+              className={`choice-chip ${impact === i ? 'active' : ''}`}
+              onClick={() => setImpact(i)}
             >
               {i}
-            </Focusable>
+            </button>
           ))}
         </div>
       </section>
 
-      <div className="row" style={{ marginTop: 48 }}>
-        <Focusable
-          as="button"
-          className="btn btn-primary"
-          autoFocus
-          onSelect={loading ? undefined : handleGenerate}
-        >
-          {loading ? 'Generating…' : 'Generate Plan'}
-        </Focusable>
-      </div>
+      <button
+        type="button"
+        className="button primary"
+        disabled={loading}
+        onClick={handleGenerate}
+      >
+        <Sparkles size={16} />
+        {loading ? 'Generating…' : 'Generate plan'}
+      </button>
     </div>
   );
 }
