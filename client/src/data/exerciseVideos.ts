@@ -256,11 +256,15 @@ export function getGenericDemo(exerciseName: string): ExerciseDemo {
   return {
     key: media.key,
     name: exerciseName,
-    available: false,
-    provider: 'none',
+    available: !!(media.imageUrl || media.gifUrl || media.youtubeVideoId),
+    provider: media.gifUrl ? 'gif' : media.imageUrl ? 'image' : 'none',
+    imageUrl: media.imageUrl,
+    gifUrl: media.gifUrl,
+    youtubeVideoId: media.youtubeVideoId,
     description: 'Follow the written instructions for this movement.',
     formCues: media.formCues,
     fallbackInstructions: media.instructions,
+    attribution: media.attribution.join(' · ') || undefined,
   };
 }
 

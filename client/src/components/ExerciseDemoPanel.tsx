@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { AlertCircle, Play, RefreshCw, Video, VideoOff } from 'lucide-react';
+import { AlertCircle, Play, RefreshCw, VideoOff } from 'lucide-react';
 import { ExerciseDemo, youtubeEmbedSrc } from '../data/exerciseVideos';
 import { PLACEHOLDER_IMAGE } from '../services/exerciseMedia';
 
@@ -9,38 +9,52 @@ interface Props {
 }
 
 /**
- * Shows exercise image / GIF / optional YouTube demo.
- * Workout timer is independent of this component.
+ * Always tries to show a visual:
+ * GIF → photo/local SVG → placeholder.
+ * GIF failure does not hide the photo.
  */
 export function ExerciseDemoPanel({ demo, isResting = false }: Props) {
   const [wantsPlay, setWantsPlay] = useState(false);
   const [loadState, setLoadState] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle');
-  const [imgError, setImgError] = useState(false);
+  const [gifFailed, setGifFailed] = useState(false);
+  const [imgFailed, setImgFailed] = useState(false);
   const [retryKey, setRetryKey] = useState(0);
 
-  const hasGif = !!(demo.gifUrl);
-  const hasImage = !!(demo.imageUrl);
-  const hasYoutube = demo.provider === 'youtube' && !!demo.youtubeVideoId;
+  const hasYoutube = !!demo.youtubeVideoId;
   const hasSelf = demo.provider === 'self_hosted' && !!demo.videoUrl;
   const canOfferVideo = !isResting && (hasYoutube || hasSelf);
 
-  const visualUrl = !isResting
-    ? hasGif
+  // Prefer GIF only if it has not failed; else photo; else placeholder
+  const stillSrc = !isResting
+    ? demo.gifUrl && !gifFailed
       ? demo.gifUrl
-      : hasImage
+      : demo.imageUrl && !imgFailed
         ? demo.imageUrl
-        : undefined
+        : PLACEHOLDER_IMAGE
     : undefined;
 
   useEffect(() => {
     setWantsPlay(false);
     setLoadState('idle');
-    setImgError(false);
+    setGifFailed(false);
+    setImgFailed(false);
   }, [demo.key, isResting]);
 
   useEffect(() => {
     if (wantsPlay && canOfferVideo) setLoadState('loading');
   }, [wantsPlay, canOfferVideo, retryKey]);
+
+  const onStillError = () => {
+    // If current still is the GIF, fall back to photo; if photo, use placeholder
+    if (demo.gifUrl && !gifFailed && stillSrc === demo.gifUrl) {
+      setGifFailed(true);
+      return;
+    }
+    if (demo.imageUrl && !imgFailed && stillSrc === demo.imageUrl) {
+      setImgFailed(true);
+      return;
+    }
+  };
 
   const onRetryVideo = () => {
     setRetryKey((k) => k + 1);
@@ -48,36 +62,25 @@ export function ExerciseDemoPanel({ demo, isResting = false }: Props) {
     setWantsPlay(true);
   };
 
-  const showVisual = !!visualUrl && !imgError;
+  if (isResting) {
+    return (
+      <div className="demo-panel">
+        <div className="demo-media">
+          <div className="demo-placeholder">
+            <p className="demo-placeholder-title">Rest interval</p>
+            <p className="demo-placeholder-sub">
+              Next demonstration loads with the next exercise.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="demo-panel">
       <div className="demo-media">
-        {/* Primary: image or GIF (always visible when available) */}
-        {!isResting && showVisual && !wantsPlay && (
-          <div className="demo-visual-wrap">
-            <img
-              key={`${visualUrl}-${retryKey}`}
-              className="demo-image"
-              src={visualUrl}
-              alt={`Demonstration: ${demo.name}`}
-              loading="lazy"
-              onLoad={() => setLoadState('ready')}
-              onError={() => setImgError(true)}
-            />
-            {canOfferVideo && (
-              <button
-                type="button"
-                className="button primary demo-play-overlay"
-                onClick={() => setWantsPlay(true)}
-              >
-                <Play size={18} /> Play video
-              </button>
-            )}
-          </div>
-        )}
-
-        {/* YouTube / self-hosted after explicit Play */}
+        {/* Video layer */}
         {canOfferVideo && wantsPlay && hasYoutube && demo.youtubeVideoId && (
           <>
             {loadState === 'loading' && (
@@ -86,7 +89,7 @@ export function ExerciseDemoPanel({ demo, isResting = false }: Props) {
             {loadState === 'error' && (
               <div className="demo-status demo-error">
                 <AlertCircle size={22} />
-                <p>Video could not load. Showing photo guide instead.</p>
+                <p>Video could not load. Showing image guide.</p>
                 <button type="button" className="button secondary" onClick={onRetryVideo}>
                   <RefreshCw size={16} /> Retry video
                 </button>
@@ -98,7 +101,7 @@ export function ExerciseDemoPanel({ demo, isResting = false }: Props) {
                     setLoadState('idle');
                   }}
                 >
-                  Back to photo
+                  Back to image
                 </button>
               </div>
             )}
@@ -128,27 +131,34 @@ export function ExerciseDemoPanel({ demo, isResting = false }: Props) {
           />
         )}
 
-        {/* Fallback: no media or image failed */}
-        {!isResting && !showVisual && !wantsPlay && (
-          <div className="demo-placeholder">
-            {demo.available ? <Video size={28} /> : <VideoOff size={28} />}
-            <p className="demo-placeholder-title">{demo.name}</p>
-            <p className="demo-placeholder-sub">
-              {canOfferVideo
-                ? 'Press Play for a video demonstration.'
-                : 'Written form guide — follow cues and the timer.'}
-            </p>
+        {/* Still image / GIF — always shown when not in video mode */}
+        {!wantsPlay && stillSrc && (
+          <div className="demo-visual-wrap">
+            <img
+              key={stillSrc}
+              className="demo-image"
+              src={stillSrc}
+              alt={`Demonstration: ${demo.name}`}
+              loading="eager"
+              onError={onStillError}
+            />
             {canOfferVideo && (
-              <button type="button" className="button primary" onClick={() => setWantsPlay(true)}>
-                <Play size={18} /> Play demo
+              <button
+                type="button"
+                className="button primary demo-play-overlay"
+                onClick={() => setWantsPlay(true)}
+              >
+                <Play size={18} /> Play video
               </button>
             )}
-            <img
-              className="demo-placeholder-img"
-              src={PLACEHOLDER_IMAGE}
-              alt=""
-              aria-hidden
-            />
+          </div>
+        )}
+
+        {!wantsPlay && !stillSrc && (
+          <div className="demo-placeholder">
+            <VideoOff size={28} />
+            <p className="demo-placeholder-title">{demo.name}</p>
+            <p className="demo-placeholder-sub">Follow the form cues and timer.</p>
             <ul className="demo-cues">
               {demo.formCues.map((cue) => (
                 <li key={cue}>{cue}</li>
@@ -156,29 +166,18 @@ export function ExerciseDemoPanel({ demo, isResting = false }: Props) {
             </ul>
           </div>
         )}
-
-        {isResting && (
-          <div className="demo-placeholder">
-            <p className="demo-placeholder-title">Rest interval</p>
-            <p className="demo-placeholder-sub">
-              Catch your breath. Next demonstration loads with the next exercise.
-            </p>
-          </div>
-        )}
       </div>
 
-      {!isResting && (
-        <div className="demo-copy">
-          <p className="demo-description">{demo.description}</p>
-          <p className="demo-fallback">{demo.fallbackInstructions}</p>
-          {(demo.attribution || demo.licenseNote) && (
-            <p className="demo-attr">
-              {demo.attribution}
-              {demo.licenseNote ? ` · ${demo.licenseNote}` : ''}
-            </p>
-          )}
-        </div>
-      )}
+      <div className="demo-copy">
+        <p className="demo-description">{demo.description}</p>
+        <p className="demo-fallback">{demo.fallbackInstructions}</p>
+        {(demo.attribution || demo.licenseNote) && (
+          <p className="demo-attr">
+            {demo.attribution}
+            {demo.licenseNote ? ` · ${demo.licenseNote}` : ''}
+          </p>
+        )}
+      </div>
     </div>
   );
 }

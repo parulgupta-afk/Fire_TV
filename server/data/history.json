@@ -1,5 +1,41 @@
 [
   {
+    "id": "37d1b75d-5cd5-4b2b-b184-9a767522f122",
+    "workoutId": "curated-beginner-bodyweight",
+    "title": "Beginner Full Body (No Equipment)",
+    "completedAt": "2026-10-12T10:15:27.519Z",
+    "plannedDurationMinutes": 15,
+    "actualDurationSeconds": 57,
+    "completedExercises": 6,
+    "totalExercises": 6,
+    "difficultyRating": null,
+    "status": "completed"
+  },
+  {
+    "id": "f2e9aabc-3134-45dd-a28a-6a0833f1326c",
+    "workoutId": "curated-core-focus",
+    "title": "Gentle Core Focus",
+    "completedAt": "2026-10-12T10:14:24.983Z",
+    "plannedDurationMinutes": 14,
+    "actualDurationSeconds": 11,
+    "completedExercises": 5,
+    "totalExercises": 5,
+    "difficultyRating": null,
+    "status": "completed"
+  },
+  {
+    "id": "9f56f6da-8300-4b03-a459-0545d6c8a12d",
+    "workoutId": "curated-quick-cardio",
+    "title": "Quick Low-Impact Cardio",
+    "completedAt": "2026-10-12T10:14:06.422Z",
+    "plannedDurationMinutes": 12,
+    "actualDurationSeconds": 7,
+    "completedExercises": 5,
+    "totalExercises": 5,
+    "difficultyRating": null,
+    "status": "completed"
+  },
+  {
     "id": "13ca1076-3431-4d7f-b185-1a8fc85682b7",
     "workoutId": "curated-core-focus",
     "title": "Gentle Core Focus",

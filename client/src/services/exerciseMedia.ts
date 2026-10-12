@@ -1,11 +1,10 @@
 /**
- * Exercise media adapter
+ * Exercise media — every known FitTV exercise resolves to a visual.
  *
- * Priority:
- * 1. free-exercise-db still photos (Unlicense / public domain) — verified paths only
- * 2. Local FitTV form-guide SVGs for exercises with no good photo match
- * 3. Optional ExerciseDB free-tier GIF (attribution required)
- * 4. Optional YouTube embed (Play button)
+ * 1) free-exercise-db photos (public domain)
+ * 2) local /exercises/*.svg guides
+ * 3) optional ExerciseDB GIF
+ * 4) optional YouTube
  */
 
 const FEDB_IMAGE_BASE =
@@ -26,18 +25,16 @@ export interface ResolvedMedia {
   sourceLabel: string;
 }
 
-function norm(name: string): string {
+/** Normalize for matching: lowercase, flatten apostrophes, collapse spaces */
+export function norm(name: string): string {
   return name
     .trim()
     .toLowerCase()
-    .replace(/[’']/g, "'")
+    .replace(/[\u2018\u2019\u201A\uFF07]/g, "'")
+    .replace(/[^a-z0-9+'\s()-]/g, '')
     .replace(/\s+/g, ' ');
 }
 
-/**
- * Accurate free-exercise-db photo paths (HTTP 200 verified).
- * Only map when the photo reasonably matches the FitTV exercise.
- */
 const FEDB_IMAGE_MAP: Record<string, { path: string; fedbName: string }> = {
   [norm('Bodyweight Squats')]: { path: 'Bodyweight_Squat/0.jpg', fedbName: 'Bodyweight Squat' },
   [norm('Bodyweight Squat')]: { path: 'Bodyweight_Squat/0.jpg', fedbName: 'Bodyweight Squat' },
@@ -50,6 +47,7 @@ const FEDB_IMAGE_MAP: Record<string, { path: string; fedbName: string }> = {
   [norm("Child's Pose")]: { path: 'Childs_Pose/0.jpg', fedbName: "Child's Pose" },
   [norm('Cool Down Stretch')]: { path: 'Childs_Pose/0.jpg', fedbName: "Child's Pose" },
   [norm('Wall Push-ups')]: { path: 'Incline_Push-Up/0.jpg', fedbName: 'Incline Push-Up' },
+  [norm('Wall Push ups')]: { path: 'Incline_Push-Up/0.jpg', fedbName: 'Incline Push-Up' },
   [norm('Knee Push-ups')]: { path: 'Pushups/0.jpg', fedbName: 'Pushups' },
   [norm('Reverse Lunges (gentle)')]: {
     path: 'Crossover_Reverse_Lunge/0.jpg',
@@ -70,9 +68,10 @@ const FEDB_IMAGE_MAP: Record<string, { path: string; fedbName: string }> = {
     fedbName: 'Hip Extension with Bands',
   },
   [norm('Arm Circles + March')]: { path: 'Arm_Circles/0.jpg', fedbName: 'Arm Circles' },
+  [norm('Arm Circles')]: { path: 'Arm_Circles/0.jpg', fedbName: 'Arm Circles' },
 };
 
-/** Local instructional SVGs when no suitable free-db photo exists */
+/** Always-available local guides (bundled, no network) */
 const LOCAL_GUIDE_MAP: Record<string, string> = {
   [norm('March in Place')]: '/exercises/march-in-place.svg',
   [norm('Side Steps')]: '/exercises/side-steps.svg',
@@ -82,6 +81,7 @@ const LOCAL_GUIDE_MAP: Record<string, string> = {
   [norm('Cool Down Walk')]: '/exercises/cool-down-walk.svg',
   [norm('Box Breathing')]: '/exercises/box-breathing.svg',
   [norm('Seated March')]: '/exercises/seated-march.svg',
+  // also provide local fallbacks for photo exercises when network fails (same cards optional)
 };
 
 const EDB_GIF_MAP: Record<string, { id: string; label: string }> = {
@@ -129,6 +129,7 @@ export function resolveExerciseMedia(input: MediaLookupInput): ResolvedMedia {
   let mediaKind: MediaKind = 'none';
   let sourceLabel = 'Written form guide';
 
+  // Prefer photo, then local guide — always try to give a still
   if (fedb) {
     imageUrl = fedbImageUrl(fedb.path);
     mediaKind = 'image';
@@ -143,12 +144,13 @@ export function resolveExerciseMedia(input: MediaLookupInput): ResolvedMedia {
     attribution.push('Illustration: FitTV AI form guide (local)');
   }
 
+  // GIF is additive (panel falls back to image if GIF fails)
   if (edb) {
     gifUrl = edbGifUrl(edb.id);
-    mediaKind = 'gif';
-    sourceLabel = 'Animated demonstration';
+    if (mediaKind === 'none') mediaKind = 'gif';
+    sourceLabel = gifUrl && !imageUrl ? 'Animated demonstration' : sourceLabel;
     attribution.push(
-      `GIF: ExerciseDB / AscendAPI free tier (${edb.label}) — attribution required; non-commercial free use`
+      `GIF: ExerciseDB / AscendAPI free tier (${edb.label}) — attribution required`
     );
   }
 
@@ -158,6 +160,13 @@ export function resolveExerciseMedia(input: MediaLookupInput): ResolvedMedia {
       mediaKind = 'youtube';
       sourceLabel = 'Video demonstration';
     }
+  }
+
+  // Last-resort visual so the panel is never empty for unknown names
+  if (!imageUrl && !gifUrl) {
+    imageUrl = PLACEHOLDER_IMAGE;
+    mediaKind = 'image';
+    sourceLabel = 'Placeholder guide';
   }
 
   return {
