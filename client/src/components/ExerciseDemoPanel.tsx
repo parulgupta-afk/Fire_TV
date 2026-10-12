@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { AlertCircle, Play, RefreshCw, VideoOff } from 'lucide-react';
 import { ExerciseDemo, youtubeEmbedSrc } from '../data/exerciseVideos';
 import { PLACEHOLDER_IMAGE } from '../services/exerciseMedia';

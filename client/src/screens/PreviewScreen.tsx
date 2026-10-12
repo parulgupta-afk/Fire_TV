@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Play, Clock3 } from 'lucide-react';
 import { getCuratedById } from '../data/curatedWorkouts';

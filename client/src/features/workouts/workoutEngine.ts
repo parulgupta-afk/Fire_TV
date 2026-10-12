@@ -5,7 +5,6 @@ import {
   PlayerState,
   PlayerSnapshot,
   CompletedWorkout,
-  DifficultyRating,
 } from '../../types/workout';
 
 export class WorkoutEngine {

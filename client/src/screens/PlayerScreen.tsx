@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Pause, Play, SkipForward, X, WandSparkles } from 'lucide-react';
 import { getCuratedById } from '../data/curatedWorkouts';
