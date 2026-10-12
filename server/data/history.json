@@ -1,5 +1,17 @@
 [
   {
+    "id": "22e4df74-deb7-4bba-8651-a69037adefec",
+    "workoutId": "plan-cdcb5398",
+    "title": "Build strength · 10 min",
+    "completedAt": "2026-10-12T11:55:25.641Z",
+    "plannedDurationMinutes": 5,
+    "actualDurationSeconds": 0,
+    "completedExercises": 0,
+    "totalExercises": 3,
+    "difficultyRating": null,
+    "status": "stopped_early"
+  },
+  {
     "id": "c96403a2-5175-4317-bd51-daabd41e0d36",
     "workoutId": "plan-4d5529e9",
     "title": "strength · 10 min",
