@@ -2,9 +2,10 @@
  * Exercise demonstration catalogue.
  *
  * Media resolution:
- * - Images: yuhonas/free-exercise-db (public domain) via exerciseMedia.ts
+ * - Photos: yuhonas/free-exercise-db (public domain), bundled locally, via exerciseMedia.ts
+ * - Animated guides: local looping SVGs drawn for the exact movement
  * - GIFs: optional oss.exercisedb.dev free tier (attribution required)
- * - YouTube: optional tertiary embeds when a valid id is configured
+ * - YouTube: optional "Play video" embeds (ids checked against the exercise title)
  *
  * Timer does NOT depend on media load/playback.
  */
@@ -23,8 +24,10 @@ export interface ExerciseDemo {
   provider: VideoProvider;
   youtubeVideoId?: string;
   videoUrl?: string;
-  /** Still image from free-exercise-db or other permitted source */
+  /** Still image, or animated local SVG guide */
   imageUrl?: string;
+  /** Start/end photo frames; the panel cross-fades them like a short loop */
+  frames?: string[];
   /** Animated GIF when available */
   gifUrl?: string;
   description: string;
@@ -35,7 +38,8 @@ export interface ExerciseDemo {
 }
 
 function norm(name: string): string {
-  return name.trim().toLowerCase().replace(/\s+/g, ' ');
+  // Curly apostrophes (e.g. "Child’s Pose Stretch") must match the catalogue key
+  return name.trim().toLowerCase().replace(/[’‘`]/g, "'").replace(/\s+/g, ' ');
 }
 
 type CatalogEntry = {
@@ -94,7 +98,6 @@ const CATALOG: CatalogEntry[] = [
     formCues: ['Step one foot back', 'Lower until comfortable', 'Front knee tracks forward'],
     fallbackInstructions:
       'Step one foot back and lower until comfortable. Alternate sides. Hold support if needed.',
-    youtubeVideoId: 'QAseZL_2E20',
   },
   {
     name: 'Dead Bug (Modified)',
@@ -222,6 +225,7 @@ function toDemo(entry: CatalogEntry, media: ResolvedMedia): ExerciseDemo {
     provider,
     youtubeVideoId: media.youtubeVideoId,
     imageUrl: media.imageUrl,
+    frames: media.frames,
     gifUrl: media.gifUrl,
     description: entry.description,
     formCues: entry.formCues,
@@ -230,7 +234,9 @@ function toDemo(entry: CatalogEntry, media: ResolvedMedia): ExerciseDemo {
     licenseNote: hasGif
       ? 'GIF: ExerciseDB free tier — credit AscendAPI; non-commercial'
       : hasImage
-        ? 'Images: free-exercise-db (Unlicense / public domain)'
+        ? media.frames
+          ? 'Photos: free-exercise-db (Unlicense / public domain)'
+          : 'Animated guide: FitTV AI'
         : hasYt
           ? 'YouTube embed — subject to YouTube Terms of Service'
           : undefined,
@@ -256,15 +262,11 @@ export function getGenericDemo(exerciseName: string): ExerciseDemo {
   return {
     key: media.key,
     name: exerciseName,
-    available: !!(media.imageUrl || media.gifUrl || media.youtubeVideoId),
-    provider: media.gifUrl ? 'gif' : media.imageUrl ? 'image' : 'none',
-    imageUrl: media.imageUrl,
-    gifUrl: media.gifUrl,
-    youtubeVideoId: media.youtubeVideoId,
+    available: false,
+    provider: 'none',
     description: 'Follow the written instructions for this movement.',
     formCues: media.formCues,
     fallbackInstructions: media.instructions,
-    attribution: media.attribution.join(' · ') || undefined,
   };
 }
 

@@ -25,7 +25,7 @@ export function PersonalizeScreen() {
       const res = await api.generateWorkout({ goal, level, durationMinutes: duration, impact });
       sessionStorage.setItem('fittv_generated_plan', JSON.stringify(res.workout));
       navigate('/preview/generated');
-    } catch (err: any) {
+    } catch (err: unknown) {
       const curated = getAllCurated();
       const match =
         curated.find(
@@ -34,7 +34,9 @@ export function PersonalizeScreen() {
             w.impact === impact &&
             Math.abs(w.estimatedDurationMinutes - duration) <= 5
         ) || curated[0];
-      setError(err?.message || 'Generation unavailable – using curated plan.');
+      const message =
+        err instanceof Error ? err.message : 'Generation unavailable – using curated plan.';
+      setError(message);
       setTimeout(() => navigate(`/preview/${match.id}`), 1200);
     } finally {
       setLoading(false);

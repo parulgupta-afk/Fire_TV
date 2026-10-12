@@ -1,6 +1,5 @@
 import React, {
   forwardRef,
-  useImperativeHandle,
   useRef,
   useEffect,
   KeyboardEvent,
@@ -31,7 +30,7 @@ export type FocusableElement = HTMLButtonElement | HTMLDivElement;
 /**
  * TV focusable wrapper with discriminated props for button and div elements.
  * Handles Enter / Space as Select, supports D-pad remote focus, ref forwarding,
- * visible focus states, and disabled state for buttons.
+ * visible focus states, autoFocus, and disabled state for buttons.
  */
 export const Focusable = forwardRef<FocusableElement, FocusableProps>(function Focusable(
   props,
@@ -39,7 +38,14 @@ export const Focusable = forwardRef<FocusableElement, FocusableProps>(function F
 ) {
   const innerRef = useRef<HTMLButtonElement | HTMLDivElement | null>(null);
 
-  useImperativeHandle(forwardedRef, () => innerRef.current as FocusableElement, []);
+  const setRef = (node: HTMLButtonElement | HTMLDivElement | null) => {
+    innerRef.current = node;
+    if (typeof forwardedRef === 'function') {
+      forwardedRef(node);
+    } else if (forwardedRef) {
+      forwardedRef.current = node;
+    }
+  };
 
   useEffect(() => {
     if (props.autoFocus && innerRef.current) {
@@ -82,9 +88,7 @@ export const Focusable = forwardRef<FocusableElement, FocusableProps>(function F
 
     return (
       <button
-        ref={(node) => {
-          innerRef.current = node;
-        }}
+        ref={setRef}
         type={type}
         disabled={disabled}
         tabIndex={disabled ? -1 : (buttonRest.tabIndex ?? 0)}
@@ -128,9 +132,7 @@ export const Focusable = forwardRef<FocusableElement, FocusableProps>(function F
 
   return (
     <div
-      ref={(node) => {
-        innerRef.current = node;
-      }}
+      ref={setRef}
       role={role}
       tabIndex={tabIndex}
       className={`focusable ${className}`.trim()}

@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Play, Clock3 } from 'lucide-react';
 import { getCuratedById } from '../data/curatedWorkouts';
 import { resolveDemo } from '../data/exerciseVideos';
+import { Exercise } from '../types/workout';
 
 export function PreviewScreen() {
   const { id } = useParams<{ id: string }>();
@@ -64,7 +65,7 @@ export function PreviewScreen() {
       </div>
 
       <div className="plan-list">
-        {plan.exercises.map((ex: any, i: number) => (
+        {plan.exercises.map((ex: Exercise, i: number) => (
           <div key={ex.id || i} className="plan-item">
             <div className="plan-index">{String(i + 1).padStart(2, '0')}</div>
             <div className="plan-body">
