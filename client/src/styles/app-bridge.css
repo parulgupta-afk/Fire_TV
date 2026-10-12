@@ -516,7 +516,6 @@ button:focus-visible {
 
 /* Exercise visual media */
 .demo-visual-wrap {
-  min-height: 220px;
   position: relative;
   width: 100%;
   height: 100%;
@@ -532,6 +531,31 @@ button:focus-visible {
   display: block;
   background: #0a151c;
 }
+/* Start/end photo frames cross-fade as a looping demo */
+.demo-frame {
+  position: absolute;
+  inset: 0;
+}
+.demo-frame-0 {
+  animation: demo-frame-a 2.4s ease-in-out infinite;
+}
+.demo-frame-1 {
+  animation: demo-frame-b 2.4s ease-in-out infinite;
+}
+@keyframes demo-frame-a {
+  0%, 35% { opacity: 1; }
+  50%, 85% { opacity: 0; }
+  100% { opacity: 1; }
+}
+@keyframes demo-frame-b {
+  0%, 35% { opacity: 0; }
+  50%, 85% { opacity: 1; }
+  100% { opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .demo-frame-0 { animation: none; opacity: 1; }
+  .demo-frame-1 { display: none; }
+}
 .demo-play-overlay {
   position: absolute;
   bottom: 16px;
@@ -542,18 +566,4 @@ button:focus-visible {
   max-width: 180px;
   opacity: 0.35;
   margin: 8px 0;
-}
-
-/* Ensure still media always paints */
-.demo-media .demo-visual-wrap {
-  position: absolute;
-  inset: 0;
-  min-height: 220px;
-}
-.demo-media {
-  position: relative;
-}
-.demo-image {
-  max-height: 100%;
-  min-height: 200px;
 }

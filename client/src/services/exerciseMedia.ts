@@ -1,10 +1,12 @@
 /**
- * Exercise media — every known FitTV exercise resolves to a visual.
+ * Exercise media adapter
  *
- * 1) free-exercise-db photos (public domain)
- * 2) local /exercises/*.svg guides
- * 3) optional ExerciseDB GIF
- * 4) optional YouTube
+ * Priority (all bundled locally, so nothing breaks on a TV / offline demo):
+ * 1. Two-frame photo demos from free-exercise-db (Unlicense / public domain),
+ *    only where the photo really shows the same movement
+ * 2. Animated FitTV form-guide SVGs (looping motion) drawn for the exact movement
+ * 3. Optional ExerciseDB free-tier GIF (attribution required)
+ * 4. Optional YouTube embed (Play button)
  */
 
 const FEDB_IMAGE_BASE =
@@ -16,6 +18,8 @@ export interface ResolvedMedia {
   key: string;
   name: string;
   imageUrl?: string;
+  /** Start/end photo frames (cross-faded in the demo panel) */
+  frames?: string[];
   gifUrl?: string;
   youtubeVideoId?: string;
   mediaKind: MediaKind;
@@ -25,53 +29,29 @@ export interface ResolvedMedia {
   sourceLabel: string;
 }
 
-/** Normalize for matching: lowercase, flatten apostrophes, collapse spaces */
-export function norm(name: string): string {
+function norm(name: string): string {
   return name
     .trim()
     .toLowerCase()
-    .replace(/[\u2018\u2019\u201A\uFF07]/g, "'")
-    .replace(/[^a-z0-9+'\s()-]/g, '')
+    .replace(/[’‘`]/g, "'")
     .replace(/\s+/g, ' ');
 }
 
-const FEDB_IMAGE_MAP: Record<string, { path: string; fedbName: string }> = {
-  [norm('Bodyweight Squats')]: { path: 'Bodyweight_Squat/0.jpg', fedbName: 'Bodyweight Squat' },
-  [norm('Bodyweight Squat')]: { path: 'Bodyweight_Squat/0.jpg', fedbName: 'Bodyweight Squat' },
-  [norm('Chair Squats')]: { path: 'Chair_Squat/0.jpg', fedbName: 'Chair Squat' },
-  [norm('Chair Squat')]: { path: 'Chair_Squat/0.jpg', fedbName: 'Chair Squat' },
-  [norm('Glute Bridge')]: { path: 'Butt_Lift_Bridge/0.jpg', fedbName: 'Butt Lift (Bridge)' },
-  [norm('Dead Bug (Modified)')]: { path: 'Dead_Bug/0.jpg', fedbName: 'Dead Bug' },
-  [norm('Dead Bug')]: { path: 'Dead_Bug/0.jpg', fedbName: 'Dead Bug' },
-  [norm("Child's Pose Stretch")]: { path: 'Childs_Pose/0.jpg', fedbName: "Child's Pose" },
-  [norm("Child's Pose")]: { path: 'Childs_Pose/0.jpg', fedbName: "Child's Pose" },
-  [norm('Cool Down Stretch')]: { path: 'Childs_Pose/0.jpg', fedbName: "Child's Pose" },
-  [norm('Wall Push-ups')]: { path: 'Incline_Push-Up/0.jpg', fedbName: 'Incline Push-Up' },
-  [norm('Wall Push ups')]: { path: 'Incline_Push-Up/0.jpg', fedbName: 'Incline Push-Up' },
-  [norm('Knee Push-ups')]: { path: 'Pushups/0.jpg', fedbName: 'Pushups' },
-  [norm('Reverse Lunges (gentle)')]: {
-    path: 'Crossover_Reverse_Lunge/0.jpg',
-    fedbName: 'Crossover Reverse Lunge',
-  },
-  [norm('Side-Lying Leg Lifts')]: { path: 'Side_Leg_Raises/0.jpg', fedbName: 'Side Leg Raises' },
-  [norm('Standing Knee Raises')]: {
-    path: 'Step-up_with_Knee_Raise/0.jpg',
-    fedbName: 'Step-up with Knee Raise',
-  },
-  [norm('Bird Dog')]: { path: 'Superman/0.jpg', fedbName: 'Superman' },
-  [norm('Pelvic Tilts')]: {
-    path: 'Pelvic_Tilt_Into_Bridge/0.jpg',
-    fedbName: 'Pelvic Tilt Into Bridge',
-  },
-  [norm('Standing Hip Extensions')]: {
-    path: 'Hip_Extension_with_Bands/0.jpg',
-    fedbName: 'Hip Extension with Bands',
-  },
-  [norm('Arm Circles + March')]: { path: 'Arm_Circles/0.jpg', fedbName: 'Arm Circles' },
-  [norm('Arm Circles')]: { path: 'Arm_Circles/0.jpg', fedbName: 'Arm Circles' },
+/**
+ * Bundled free-exercise-db photos (start + end position).
+ * Only mapped when the photo shows the same movement as the FitTV exercise.
+ */
+const LOCAL_PHOTO_MAP: Record<string, { slug: string; fedbName: string }> = {
+  [norm('Bodyweight Squats')]: { slug: 'bodyweight-squats', fedbName: 'Bodyweight Squat' },
+  [norm('Bodyweight Squat')]: { slug: 'bodyweight-squats', fedbName: 'Bodyweight Squat' },
+  [norm('Glute Bridge')]: { slug: 'glute-bridge', fedbName: 'Butt Lift (Bridge)' },
+  [norm('Dead Bug (Modified)')]: { slug: 'dead-bug', fedbName: 'Dead Bug' },
+  [norm('Dead Bug')]: { slug: 'dead-bug', fedbName: 'Dead Bug' },
+  [norm("Child's Pose Stretch")]: { slug: 'childs-pose', fedbName: "Child's Pose" },
+  [norm("Child's Pose")]: { slug: 'childs-pose', fedbName: "Child's Pose" },
 };
 
-/** Always-available local guides (bundled, no network) */
+/** Animated local form-guide SVGs for the exact movement */
 const LOCAL_GUIDE_MAP: Record<string, string> = {
   [norm('March in Place')]: '/exercises/march-in-place.svg',
   [norm('Side Steps')]: '/exercises/side-steps.svg',
@@ -81,20 +61,42 @@ const LOCAL_GUIDE_MAP: Record<string, string> = {
   [norm('Cool Down Walk')]: '/exercises/cool-down-walk.svg',
   [norm('Box Breathing')]: '/exercises/box-breathing.svg',
   [norm('Seated March')]: '/exercises/seated-march.svg',
-  // also provide local fallbacks for photo exercises when network fails (same cards optional)
+  [norm('Chair Squats')]: '/exercises/chair-squats.svg',
+  [norm('Chair Squat')]: '/exercises/chair-squats.svg',
+  [norm('Wall Push-ups')]: '/exercises/wall-push-ups.svg',
+  [norm('Knee Push-ups')]: '/exercises/knee-push-ups.svg',
+  [norm('Reverse Lunges (gentle)')]: '/exercises/reverse-lunges.svg',
+  [norm('Standing Knee Raises')]: '/exercises/standing-knee-raises.svg',
+  [norm('Bird Dog')]: '/exercises/bird-dog.svg',
+  [norm('Side-Lying Leg Lifts')]: '/exercises/side-lying-leg-lifts.svg',
+  [norm('Pelvic Tilts')]: '/exercises/pelvic-tilts.svg',
+  [norm('Standing Hip Extensions')]: '/exercises/standing-hip-extension.svg',
+  [norm('Arm Circles + March')]: '/exercises/arm-circles-march.svg',
+  [norm('Cool Down Stretch')]: '/exercises/cool-down-stretch.svg',
 };
 
-const EDB_GIF_MAP: Record<string, { id: string; label: string }> = {
-  [norm('Bodyweight Squats')]: { id: '6YUfHPL', label: 'quads (bodyweight squat)' },
-  [norm('Bodyweight Squat')]: { id: '6YUfHPL', label: 'quads (bodyweight squat)' },
-};
+/** Optional GIFs (none mapped by default: the bundled demos are the reliable path) */
+const EDB_GIF_MAP: Record<string, { id: string; label: string }> = {};
 
 export function fedbImageUrl(path: string): string {
   return `${FEDB_IMAGE_BASE}${path}`;
 }
 
+export function localPhotoFrames(slug: string): string[] {
+  return [`/exercises/photos/${slug}-0.jpg`, `/exercises/photos/${slug}-1.jpg`];
+}
+
 export function edbGifUrl(exerciseId: string): string {
   return `https://static.exercisedb.dev/media/${exerciseId}.gif`;
+}
+
+/** Every bundled media path (used by tests to make sure no file is missing) */
+export function listLocalMediaPaths(): string[] {
+  const photos = new Set(Object.values(LOCAL_PHOTO_MAP).map((p) => p.slug));
+  return [
+    ...Array.from(photos).flatMap((slug) => localPhotoFrames(slug)),
+    ...Array.from(new Set(Object.values(LOCAL_GUIDE_MAP))),
+  ];
 }
 
 export const PLACEHOLDER_IMAGE =
@@ -118,39 +120,39 @@ export interface MediaLookupInput {
 
 export function resolveExerciseMedia(input: MediaLookupInput): ResolvedMedia {
   const key = norm(input.name);
-  const fedb = FEDB_IMAGE_MAP[key];
+  const photo = LOCAL_PHOTO_MAP[key];
   const local = LOCAL_GUIDE_MAP[key];
   const edb = EDB_GIF_MAP[key];
   const hasYt = !!(input.availableYoutube && input.youtubeVideoId);
 
   const attribution: string[] = [];
   let imageUrl: string | undefined;
+  let frames: string[] | undefined;
   let gifUrl: string | undefined;
   let mediaKind: MediaKind = 'none';
   let sourceLabel = 'Written form guide';
 
-  // Prefer photo, then local guide — always try to give a still
-  if (fedb) {
-    imageUrl = fedbImageUrl(fedb.path);
+  if (photo) {
+    frames = localPhotoFrames(photo.slug);
+    imageUrl = frames[0];
     mediaKind = 'image';
     sourceLabel = 'Photo demonstration';
     attribution.push(
-      `Image: free-exercise-db (${fedb.fedbName}) — public domain / Unlicense`
+      `Image: free-exercise-db (${photo.fedbName}) — public domain / Unlicense`
     );
   } else if (local) {
     imageUrl = local;
     mediaKind = 'image';
-    sourceLabel = 'Form guide card';
-    attribution.push('Illustration: FitTV AI form guide (local)');
+    sourceLabel = 'Animated form guide';
+    attribution.push('Illustration: FitTV AI animated form guide');
   }
 
-  // GIF is additive (panel falls back to image if GIF fails)
   if (edb) {
     gifUrl = edbGifUrl(edb.id);
-    if (mediaKind === 'none') mediaKind = 'gif';
-    sourceLabel = gifUrl && !imageUrl ? 'Animated demonstration' : sourceLabel;
+    mediaKind = 'gif';
+    sourceLabel = 'Animated demonstration';
     attribution.push(
-      `GIF: ExerciseDB / AscendAPI free tier (${edb.label}) — attribution required`
+      `GIF: ExerciseDB / AscendAPI free tier (${edb.label}) — attribution required; non-commercial free use`
     );
   }
 
@@ -162,17 +164,11 @@ export function resolveExerciseMedia(input: MediaLookupInput): ResolvedMedia {
     }
   }
 
-  // Last-resort visual so the panel is never empty for unknown names
-  if (!imageUrl && !gifUrl) {
-    imageUrl = PLACEHOLDER_IMAGE;
-    mediaKind = 'image';
-    sourceLabel = 'Placeholder guide';
-  }
-
   return {
     key,
     name: input.name,
     imageUrl,
+    frames,
     gifUrl,
     youtubeVideoId: hasYt ? input.youtubeVideoId : undefined,
     mediaKind,

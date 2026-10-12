@@ -190,7 +190,7 @@ export const CURATED_WORKOUTS: WorkoutPlan[] = [
       },
       {
         id: 'co5',
-        name: "Child's Pose Stretch",
+        name: 'Child’s Pose Stretch',
         instructions: 'Kneel and fold forward, arms extended or by sides. Breathe deeply.',
         durationSeconds: 45,
         restSeconds: 0,
