@@ -1,5 +1,29 @@
 [
   {
+    "id": "dd4b28e4-2656-4b94-a400-8a689df11545",
+    "workoutId": "plan-d7c47da7",
+    "title": "Build strength · 10 min",
+    "completedAt": "2026-10-11T11:37:37.387Z",
+    "plannedDurationMinutes": 5,
+    "actualDurationSeconds": 0,
+    "completedExercises": 0,
+    "totalExercises": 3,
+    "difficultyRating": null,
+    "status": "stopped_early"
+  },
+  {
+    "id": "3fbc20ec-3b27-4c63-8bb1-07e283e29560",
+    "workoutId": "curated-quick-cardio",
+    "title": "Quick Low-Impact Cardio (Adapted) (Adapted) (Adapted) (Adapted) (Adapted) (Adapted) (Adapted) (Adapted)",
+    "completedAt": "2026-10-11T11:23:01.136Z",
+    "plannedDurationMinutes": 5,
+    "actualDurationSeconds": 26,
+    "completedExercises": 0,
+    "totalExercises": 5,
+    "difficultyRating": null,
+    "status": "stopped_early"
+  },
+  {
     "id": "09e2356c-8993-4e13-8de6-097292cb1213",
     "workoutId": "curated-core-focus",
     "title": "Gentle Core Focus (Adapted) (Adapted)",
