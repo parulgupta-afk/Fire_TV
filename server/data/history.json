@@ -1,5 +1,17 @@
 [
   {
+    "id": "88a3f562-b4c8-4838-9f62-e5a16c829526",
+    "workoutId": "plan-fa4069c7",
+    "title": "Build strength · 15 min",
+    "completedAt": "2026-10-12T10:39:41.282Z",
+    "plannedDurationMinutes": 6,
+    "actualDurationSeconds": 0,
+    "completedExercises": 0,
+    "totalExercises": 5,
+    "difficultyRating": null,
+    "status": "stopped_early"
+  },
+  {
     "id": "28d785c1-68a2-41d5-b223-231cf24e4eb5",
     "workoutId": "curated-beginner-bodyweight",
     "title": "Beginner Full Body (No Equipment)",
