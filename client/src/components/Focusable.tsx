@@ -10,7 +10,7 @@ import React, {
 
 export type FocusableBaseProps = {
   onSelect?: () => void;
-  children: ReactNode;
+  children?: ReactNode;
   autoFocus?: boolean;
 };
 
