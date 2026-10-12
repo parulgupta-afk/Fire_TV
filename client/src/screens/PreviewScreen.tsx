@@ -75,7 +75,7 @@ export function PreviewScreen() {
               <Clock3 size={14} />
               {ex.durationSeconds ? `${ex.durationSeconds}s` : `${ex.reps} reps`}
               {ex.restSeconds ? ` + ${ex.restSeconds}s rest` : ''}
-              {resolveDemo(ex.name).available ? ' · Animated demo' : ' · Form guide'}
+              {resolveDemo(ex.name).available ? ' · Demo video' : ' · Form guide'}
             </div>
           </div>
         ))}
