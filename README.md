@@ -84,29 +84,28 @@ MIT (or as required by the hackathon).
 
 ## Exercise demonstrations
 
-The workout player shows a demonstration panel for the **current** exercise.
+FitTV AI resolves **photos, optional GIFs, and optional YouTube** demos for the current exercise.
 
-### Configured playable demos (YouTube embed)
-| Exercise | Source (attribution) |
-|----------|----------------------|
-| Bodyweight Squats | PureGym (`l83R5PblSMA`) |
-| Glute Bridge | PureGym (`tqp5XQPpTxY`) |
-| Bird Dog | Cincinnati Children's HealthWorks (`kGPVyMPpEQo`) |
-| Chair Squats | Pike Fitness (`mZhcnuXF3Ww`) |
-| Wall Push-ups | Brian Syuki (`b01muAD0_NI`) |
-| Reverse Lunges (gentle) | Cincinnati Children's (`QAseZL_2E20`) |
-| Dead Bug (Modified) | Keren Zumba (`YwxJwe4bBTo`) |
+### Sources
+| Source | What we use | License / terms |
+|--------|-------------|-----------------|
+| [yuhonas/free-exercise-db](https://github.com/yuhonas/free-exercise-db) | Still images via GitHub raw CDN | **Unlicense / public domain** |
+| [oss.exercisedb.dev](https://oss.exercisedb.dev/docs) free API | Optional 180p GIFs (`static.exercisedb.dev`) | Free non-commercial; **credit AscendAPI**; rate limits |
+| YouTube embeds | Optional tertiary video (Play button) | YouTube Terms of Service |
 
-Other catalogue exercises use **written form cues** only.
+Image base URL:
+`https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/{path}`
 
 ### Behavior
-- Press **Play demo** (autoplay-safe).
-- Timer independent of video.
-- Skip/adapt updates demo by exercise name.
-- Failure → form cues + Retry; workout continues.
-- Needs network for YouTube.
-- Fire TV / Vega embed **not verified** here — test on official simulator.
+- Player shows **photo or GIF** for mapped exercises automatically.
+- Optional **Play video** loads YouTube when configured.
+- Image/GIF/network failure → written form cues + local placeholder.
+- Workout **timer is independent** of media.
+- Needs network for external images/GIFs/YouTube.
+- **Fire TV / Vega media playback not verified** in this environment.
 
-### Add a video
-Edit `client/src/data/exerciseVideos.ts` with a permitted source + attribution.
+### Key files
+- `client/src/services/exerciseMedia.ts` — mapping + URL builders
+- `client/src/data/exerciseVideos.ts` — catalogue + resolveDemo
+- `client/src/components/ExerciseDemoPanel.tsx` — UI
 
