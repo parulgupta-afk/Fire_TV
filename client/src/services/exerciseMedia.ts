@@ -1,15 +1,11 @@
 /**
  * Exercise media adapter
  *
- * Primary images: yuhonas/free-exercise-db (Unlicense / public domain)
- *   JSON:  https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/dist/exercises.json
- *   Images: https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/{path}
- *
- * Optional GIFs: oss.exercisedb.dev free API (attribution required; non-commercial free tier)
- *   GET https://oss.exercisedb.dev/api/v1/exercises
- *   gifUrl: https://static.exercisedb.dev/media/{id}.gif
- *
- * YouTube embeds remain optional tertiary demos (see exerciseVideos.ts).
+ * Priority:
+ * 1. free-exercise-db still photos (Unlicense / public domain) — verified paths only
+ * 2. Local FitTV form-guide SVGs for exercises with no good photo match
+ * 3. Optional ExerciseDB free-tier GIF (attribution required)
+ * 4. Optional YouTube embed (Play button)
  */
 
 const FEDB_IMAGE_BASE =
@@ -20,11 +16,8 @@ export type MediaKind = 'image' | 'gif' | 'youtube' | 'none';
 export interface ResolvedMedia {
   key: string;
   name: string;
-  /** Still image URL (public domain free-exercise-db when mapped) */
   imageUrl?: string;
-  /** Animated GIF URL (ExerciseDB free tier when mapped) */
   gifUrl?: string;
-  /** YouTube video id if configured */
   youtubeVideoId?: string;
   mediaKind: MediaKind;
   formCues: string[];
@@ -41,41 +34,56 @@ function norm(name: string): string {
     .replace(/\s+/g, ' ');
 }
 
-/** Map FitTV exercise names → free-exercise-db image path (verified against dist/exercises.json) */
+/**
+ * Accurate free-exercise-db photo paths (HTTP 200 verified).
+ * Only map when the photo reasonably matches the FitTV exercise.
+ */
 const FEDB_IMAGE_MAP: Record<string, { path: string; fedbName: string }> = {
   [norm('Bodyweight Squats')]: { path: 'Bodyweight_Squat/0.jpg', fedbName: 'Bodyweight Squat' },
   [norm('Bodyweight Squat')]: { path: 'Bodyweight_Squat/0.jpg', fedbName: 'Bodyweight Squat' },
   [norm('Chair Squats')]: { path: 'Chair_Squat/0.jpg', fedbName: 'Chair Squat' },
   [norm('Chair Squat')]: { path: 'Chair_Squat/0.jpg', fedbName: 'Chair Squat' },
-  [norm('Glute Bridge')]: { path: 'Single_Leg_Glute_Bridge/0.jpg', fedbName: 'Single Leg Glute Bridge' },
+  [norm('Glute Bridge')]: { path: 'Butt_Lift_Bridge/0.jpg', fedbName: 'Butt Lift (Bridge)' },
   [norm('Dead Bug (Modified)')]: { path: 'Dead_Bug/0.jpg', fedbName: 'Dead Bug' },
   [norm('Dead Bug')]: { path: 'Dead_Bug/0.jpg', fedbName: 'Dead Bug' },
   [norm("Child's Pose Stretch")]: { path: 'Childs_Pose/0.jpg', fedbName: "Child's Pose" },
   [norm("Child's Pose")]: { path: 'Childs_Pose/0.jpg', fedbName: "Child's Pose" },
-  [norm('Knee Push-ups')]: { path: 'Incline_Push-Up/0.jpg', fedbName: 'Incline Push-Up' },
+  [norm('Cool Down Stretch')]: { path: 'Childs_Pose/0.jpg', fedbName: "Child's Pose" },
   [norm('Wall Push-ups')]: { path: 'Incline_Push-Up/0.jpg', fedbName: 'Incline Push-Up' },
+  [norm('Knee Push-ups')]: { path: 'Pushups/0.jpg', fedbName: 'Pushups' },
   [norm('Reverse Lunges (gentle)')]: {
-    path: 'Bodyweight_Walking_Lunge/0.jpg',
-    fedbName: 'Bodyweight Walking Lunge',
+    path: 'Crossover_Reverse_Lunge/0.jpg',
+    fedbName: 'Crossover Reverse Lunge',
   },
   [norm('Side-Lying Leg Lifts')]: { path: 'Side_Leg_Raises/0.jpg', fedbName: 'Side Leg Raises' },
-  [norm('Gentle Step Jacks')]: { path: 'Mountain_Climbers/0.jpg', fedbName: 'Mountain Climbers' },
-  [norm('Gentle Jumping Jacks (or Step Jacks)')]: {
-    path: 'Mountain_Climbers/0.jpg',
-    fedbName: 'Mountain Climbers',
-  },
-  [norm('Cool Down Stretch')]: { path: 'Childs_Pose/0.jpg', fedbName: "Child's Pose" },
   [norm('Standing Knee Raises')]: {
     path: 'Step-up_with_Knee_Raise/0.jpg',
     fedbName: 'Step-up with Knee Raise',
   },
   [norm('Bird Dog')]: { path: 'Superman/0.jpg', fedbName: 'Superman' },
+  [norm('Pelvic Tilts')]: {
+    path: 'Pelvic_Tilt_Into_Bridge/0.jpg',
+    fedbName: 'Pelvic Tilt Into Bridge',
+  },
+  [norm('Standing Hip Extensions')]: {
+    path: 'Hip_Extension_with_Bands/0.jpg',
+    fedbName: 'Hip Extension with Bands',
+  },
+  [norm('Arm Circles + March')]: { path: 'Arm_Circles/0.jpg', fedbName: 'Arm Circles' },
 };
 
-/**
- * Optional ExerciseDB GIF ids — only entries we discovered via the free API.
- * Free tier: attribution to AscendAPI required; non-commercial use.
- */
+/** Local instructional SVGs when no suitable free-db photo exists */
+const LOCAL_GUIDE_MAP: Record<string, string> = {
+  [norm('March in Place')]: '/exercises/march-in-place.svg',
+  [norm('Side Steps')]: '/exercises/side-steps.svg',
+  [norm('Step Touches')]: '/exercises/step-touches.svg',
+  [norm('Gentle Step Jacks')]: '/exercises/step-jacks.svg',
+  [norm('Gentle Jumping Jacks (or Step Jacks)')]: '/exercises/step-jacks.svg',
+  [norm('Cool Down Walk')]: '/exercises/cool-down-walk.svg',
+  [norm('Box Breathing')]: '/exercises/box-breathing.svg',
+  [norm('Seated March')]: '/exercises/seated-march.svg',
+};
+
 const EDB_GIF_MAP: Record<string, { id: string; label: string }> = {
   [norm('Bodyweight Squats')]: { id: '6YUfHPL', label: 'quads (bodyweight squat)' },
   [norm('Bodyweight Squat')]: { id: '6YUfHPL', label: 'quads (bodyweight squat)' },
@@ -89,7 +97,6 @@ export function edbGifUrl(exerciseId: string): string {
   return `https://static.exercisedb.dev/media/${exerciseId}.gif`;
 }
 
-/** Local SVG data-URI placeholder (no network) */
 export const PLACEHOLDER_IMAGE =
   'data:image/svg+xml,' +
   encodeURIComponent(
@@ -109,13 +116,10 @@ export interface MediaLookupInput {
   availableYoutube?: boolean;
 }
 
-/**
- * Resolve media for an exercise name. Pure / sync — no network.
- * Prefer image + optional GIF; YouTube is optional enhancement.
- */
 export function resolveExerciseMedia(input: MediaLookupInput): ResolvedMedia {
   const key = norm(input.name);
   const fedb = FEDB_IMAGE_MAP[key];
+  const local = LOCAL_GUIDE_MAP[key];
   const edb = EDB_GIF_MAP[key];
   const hasYt = !!(input.availableYoutube && input.youtubeVideoId);
 
@@ -132,6 +136,11 @@ export function resolveExerciseMedia(input: MediaLookupInput): ResolvedMedia {
     attribution.push(
       `Image: free-exercise-db (${fedb.fedbName}) — public domain / Unlicense`
     );
+  } else if (local) {
+    imageUrl = local;
+    mediaKind = 'image';
+    sourceLabel = 'Form guide card';
+    attribution.push('Illustration: FitTV AI form guide (local)');
   }
 
   if (edb) {
@@ -144,7 +153,6 @@ export function resolveExerciseMedia(input: MediaLookupInput): ResolvedMedia {
   }
 
   if (hasYt && input.youtubeVideoId) {
-    // Keep youtube as optional playable layer; primary visual can still be image/gif
     attribution.push('Video: YouTube embed — subject to YouTube Terms of Service');
     if (mediaKind === 'none') {
       mediaKind = 'youtube';

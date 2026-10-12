@@ -96,6 +96,12 @@ FitTV AI resolves **photos, optional GIFs, and optional YouTube** demos for the 
 Image base URL:
 `https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/{path}`
 
+### Coverage
+- **Photo (free-exercise-db):** squats, chair squats, glute bridge, dead bug, child's pose, push-up variants, lunges, leg lifts, knee raises, bird-dog (Superman still), pelvic tilt, hip extension, arm circles
+- **Local SVG guides:** march in place, side steps, step touches, step jacks, cool-down walk, box breathing, seated march
+- **Optional GIF:** bodyweight squat (ExerciseDB free tier)
+- **Optional YouTube:** Play button where an id is configured
+
 ### Behavior
 - Player shows **photo or GIF** for mapped exercises automatically.
 - Optional **Play video** loads YouTube when configured.

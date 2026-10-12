@@ -1,5 +1,17 @@
 [
   {
+    "id": "13ca1076-3431-4d7f-b185-1a8fc85682b7",
+    "workoutId": "curated-core-focus",
+    "title": "Gentle Core Focus",
+    "completedAt": "2026-10-12T10:08:35.668Z",
+    "plannedDurationMinutes": 14,
+    "actualDurationSeconds": 19,
+    "completedExercises": 5,
+    "totalExercises": 5,
+    "difficultyRating": null,
+    "status": "completed"
+  },
+  {
     "id": "dd4b28e4-2656-4b94-a400-8a689df11545",
     "workoutId": "plan-d7c47da7",
     "title": "Build strength · 10 min",
